@@ -1,6 +1,6 @@
-h1. Content Trends Add-On for Alfresco
+=Content Trends Add-On for Alfresco=
 
-h2. Getting Started
+==Getting Started==
 
 This add-on was developed and tested against Alfresco Enterprise 4.0.2 and will not be fully functional on Alfresco Community 4.0, since Community lacks some of the extension points added in the Enterprise branch.
 In order to build this add-on, just run
@@ -18,10 +18,10 @@ NOTE: If you do not use the deployable WARs, please take care of the following a
     
 This will allow Spring configuration files from AMP modules to contribute to the Share tier in much the same manner as is currently possible on the Repository tier.
 
-h2. Usage
+==Usage==
 
+[[TODO]]
 
-
-h2. License
+==License==
 
 Eclipse Public License 1.0 - see LICENCE
