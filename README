@@ -1,0 +1,27 @@
+h1. Content Trends Add-On for Alfresco
+
+h2. Getting Started
+
+This add-on was developed and tested against Alfresco Enterprise 4.0.2 and will not be fully functional on Alfresco Community 4.0, since Community lacks some of the extension points added in the Enterprise branch.
+In order to build this add-on, just run
+
+    mvn install -P privateAlfrescoRepository,publicRepositories
+
+in the /content-trends-modules directory. This requires that you to have your access credentials for to the Private Alfresco Nexus Repository (id = "alfresco-artifacts-private") managed in your Maven settings.xml (or equivalent configuration file).
+
+The built AMP files can be found in the module projects under /content\-trends\-modules/.
+For convenience, you can also run the projects in /content-trends-build to build deployable WARs for Alfresco Repository and Share, or simply run the root project for a full build. 
+
+NOTE: If you do not use the deployable WARs, please take care of the following addition to the custom-slingshot-application-context.xml in Share, which is required to activate the Share tier functionality.
+
+    <import resource="classpath*:alfresco/module/*/*-context.xml" />
+    
+This will allow Spring configuration files from AMP modules to contribute to the Share tier in much the same manner as is currently possible on the Repository tier.
+
+h2. Usage
+
+
+
+h2. License
+
+Eclipse Public License 1.0 - see LICENCE

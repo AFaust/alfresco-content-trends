@@ -1,17 +1,16 @@
 PROJECT LAYOUT
 --------------
 
-src --------------------------------------------------------> (source folder)
+src -------------------------------------> (source folder)
 		|
-		|__ main ___ __ resources --------------------------> Classpath resources (land in JAR)
+		|__ main ___ __ messages --------> I18n bundles
 		|			|
-		|			|__ config------------------------------> Module configuration.
+		|			|__ config-----------> Module configuration
 		|			|
-		|			|__ java -------------------------------> Java classes, duh!
+		|			|__ java ------------> Java stuff (JAR fodder)
 		|			|
-		|			|__ webapp -----------------------------> Web resources - will be processed by merger / minifer
-        |
-		|			
-		|__ test _____ resources
+        |           |__ webscripts ------> Repository tier web scripts
+        |           |
+		|			|__ webapp ----------> Web resources - will be processed by merger / minifer
 		|
 		target - Project build dir
