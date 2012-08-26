@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- xsi:schemaLocation="http://www.alfresco.org/model/dictionary/1.0 modelSchema.xsd" -->
+<model name="ct:contentTrendsModel" xmlns="http://www.alfresco.org/model/dictionary/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <description>Content Trends Model</description>
+    <author>Axel Faust, PRODYNA AG</author>
+    <version>0.1</version>
+
+    <imports>
+        <import uri="http://www.alfresco.org/model/dictionary/1.0" prefix="d" />
+    </imports>
+
+    <namespaces>
+        <namespace uri="http://www.prodyna.com/model/contenttrends/0.1" prefix="ct" />
+    </namespaces>
+
+    <constraints>
+    </constraints>
+
+    <types>
+    </types>
+
+    <aspects>
+
+        <aspect name="ct:scored">
+            <title>Scored</title>
+            <description>Content Trend Score(s) of this element</description>
+            <properties>
+                <property name="ct:totalScore">
+                    <title>Total Score</title>
+                    <description>Total score of all activities</description>
+                    <type>d:int</type>
+                    <protected>true</protected>
+                    <default>0</default>
+                    <index enabled="true">
+                        <atomic>true</atomic>
+                        <stored>false</stored>
+                        <tokenised>false</tokenised>
+                    </index>
+                </property>
+                <property name="ct:viewScore">
+                    <title>View Score</title>
+                    <description>Single score for view / download activity</description>
+                    <type>d:int</type>
+                    <protected>true</protected>
+                    <default>0</default>
+                    <index enabled="true">
+                        <atomic>true</atomic>
+                        <stored>false</stored>
+                        <tokenised>false</tokenised>
+                    </index>
+                </property>
+                <property name="ct:tagScore">
+                    <title>Tag Score</title>
+                    <description>Single score for tagging activity</description>
+                    <type>d:int</type>
+                    <protected>true</protected>
+                    <default>0</default>
+                    <index enabled="true">
+                        <atomic>true</atomic>
+                        <stored>false</stored>
+                        <tokenised>false</tokenised>
+                    </index>
+                </property>
+                <property name="ct:commentScore">
+                    <title>Comment Score</title>
+                    <description>Single score for comment activity</description>
+                    <type>d:int</type>
+                    <protected>true</protected>
+                    <default>0</default>
+                    <index enabled="true">
+                        <atomic>true</atomic>
+                        <stored>false</stored>
+                        <tokenised>false</tokenised>
+                    </index>
+                </property>
+                <property name="ct:ratingScore">
+                    <title>Rating Score</title>
+                    <description>Single score for rating activity</description>
+                    <type>d:int</type>
+                    <protected>true</protected>
+                    <default>0</default>
+                    <index enabled="true">
+                        <atomic>true</atomic>
+                        <stored>false</stored>
+                        <tokenised>false</tokenised>
+                    </index>
+                </property>
+                <property name="ct:editScore">
+                    <title>Edit Score</title>
+                    <description>Total score for edit activity (all edit events)</description>
+                    <type>d:int</type>
+                    <protected>true</protected>
+                    <default>0</default>
+                    <index enabled="true">
+                        <atomic>true</atomic>
+                        <stored>false</stored>
+                        <tokenised>false</tokenised>
+                    </index>
+                </property>
+            </properties>
+        </aspect>
+
+        <aspect name="ct:scoredChange">
+            <title>Scored Change</title>
+            <description>Content Trend Score changes of this element</description>
+            <properties>
+                <property name="ct:totalScoreChange">
+                    <title>Total Score Change Percentage</title>
+                    <description>Score change percentage of all activities relative to one day ago (or whichever data set comes closest up to 12
+                        hours)</description>
+                    <type>d:int</type>
+                    <protected>true</protected>
+                    <default>0</default>
+                    <index enabled="true">
+                        <atomic>true</atomic>
+                        <stored>false</stored>
+                        <tokenised>false</tokenised>
+                    </index>
+                </property>
+                <property name="ct:viewScoreChange">
+                    <title>View Score Change Percentage</title>
+                    <description>Score change percentage for view / download activity relative to one day ago (or whichever data set comes
+                        closest up to 12 hours)</description>
+                    <type>d:int</type>
+                    <protected>true</protected>
+                    <default>0</default>
+                    <index enabled="true">
+                        <atomic>true</atomic>
+                        <stored>false</stored>
+                        <tokenised>false</tokenised>
+                    </index>
+                </property>
+                <property name="ct:tagScoreChange">
+                    <title>Tag Score Change Percentage</title>
+                    <description>Score change percentage for tagging activity relative to one day ago (or whichever data set comes closest up to
+                        12 hours)</description>
+                    <type>d:int</type>
+                    <protected>true</protected>
+                    <default>0</default>
+                    <index enabled="true">
+                        <atomic>true</atomic>
+                        <stored>false</stored>
+                        <tokenised>false</tokenised>
+                    </index>
+                </property>
+                <property name="ct:commentScoreChange">
+                    <title>Comment Score Change Percentage</title>
+                    <description>Score change percentage for comment activity relative to one day ago (or whichever data set comes closest up to
+                        12 hours)</description>
+                    <type>d:int</type>
+                    <protected>true</protected>
+                    <default>0</default>
+                    <index enabled="true">
+                        <atomic>true</atomic>
+                        <stored>false</stored>
+                        <tokenised>false</tokenised>
+                    </index>
+                </property>
+                <property name="ct:ratingScoreChange">
+                    <title>Rating Score Change Percentage</title>
+                    <description>Score change percentage for rating activity relative to one day ago (or whichever data set comes closest up to
+                        12 hours)</description>
+                    <type>d:int</type>
+                    <protected>true</protected>
+                    <default>0</default>
+                    <index enabled="true">
+                        <atomic>true</atomic>
+                        <stored>false</stored>
+                        <tokenised>false</tokenised>
+                    </index>
+                </property>
+                <property name="ct:editScoreChange">
+                    <title>Edit Score Change Percentage</title>
+                    <description>Score change percentage for edit activity (all edit events) relative to one day ago (or whichever data set
+                        comes closest up to 12 hours)</description>
+                    <type>d:int</type>
+                    <protected>true</protected>
+                    <default>0</default>
+                    <index enabled="true">
+                        <atomic>true</atomic>
+                        <stored>false</stored>
+                        <tokenised>false</tokenised>
+                    </index>
+                </property>
+            </properties>
+        </aspect>
+
+    </aspects>
+</model>

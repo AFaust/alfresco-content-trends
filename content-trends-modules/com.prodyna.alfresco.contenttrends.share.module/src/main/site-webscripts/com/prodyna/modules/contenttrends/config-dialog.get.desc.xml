@@ -1,0 +1,5 @@
+<webscript>
+    <shortname>config-dialog</shortname>
+    <description>Configuration dialog for the Content Trends dashlet</description>
+    <url>/modules/content-trends/config-dialog</url>
+</webscript>

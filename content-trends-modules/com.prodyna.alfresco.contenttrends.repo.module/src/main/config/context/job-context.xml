@@ -1,0 +1,81 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE beans PUBLIC '-//SPRING//DTD BEAN//EN' 'http://www.springframework.org/dtd/spring-beans.dtd'>
+
+<beans>
+
+    <bean id="${project.artifactId}-trendEventConsolidationJob" class="org.springframework.scheduling.quartz.JobDetailBean">
+        <property name="jobClass" value="com.prodyna.alfresco.contenttrends.repo.module.jobs.ContentTrendsConsolidationJob" />
+        <property name="jobDataAsMap">
+            <map>
+                <entry key="consolidator">
+                    <ref bean="${project.artifactId}-trendEventConsolidator" />
+                </entry>
+            </map>
+        </property>
+    </bean>
+
+    <bean id="${project.artifactId}-trendEventConsolidationJobTrigger" class="org.alfresco.util.TriggerBean">
+        <property name="jobDetail" ref="${project.artifactId}-trendEventConsolidationJob" />
+        <property name="scheduler" ref="schedulerFactory" />
+        <property name="startDelayMinutes" value="${contentTrends.consolidation.startDelayMins}" />
+        <property name="repeatIntervalMinutes" value="${contentTrends.consolidation.repeatIntervalMins}" />
+    </bean>
+
+    <bean id="${project.artifactId}-trendEventConsolidator" class="com.prodyna.alfresco.contenttrends.repo.module.jobs.ContentTrendsConsolidator">
+        <property name="jobLockService" ref="JobLockService" />
+        <property name="transactionService" ref="TransactionService" />
+        <property name="auditComponent" ref="auditComponent" />
+        <property name="auditService" ref="AuditService" />
+    </bean>
+
+    <bean id="${project.artifactId}-trendEventScoreUpdateJob" class="org.springframework.scheduling.quartz.JobDetailBean">
+        <property name="jobClass" value="com.prodyna.alfresco.contenttrends.repo.module.jobs.ContentTrendsScoreUpdateJob" />
+        <property name="jobDataAsMap">
+            <map>
+                <entry key="updater">
+                    <ref bean="${project.artifactId}-trendEventScoreUpdater" />
+                </entry>
+            </map>
+        </property>
+    </bean>
+
+    <bean id="${project.artifactId}-trendEventScoreUpdateJobTrigger" class="org.alfresco.util.TriggerBean">
+        <property name="jobDetail" ref="${project.artifactId}-trendEventScoreUpdateJob" />
+        <property name="scheduler" ref="schedulerFactory" />
+        <property name="startDelayMinutes" value="${contentTrends.scoreUpdate.startDelayMins}" />
+        <property name="repeatIntervalMinutes" value="${contentTrends.scoreUpdate.repeatIntervalMins}" />
+    </bean>
+
+    <bean id="${project.artifactId}-trendEventScoreUpdater" class="com.prodyna.alfresco.contenttrends.repo.module.jobs.ContentTrendsScoreUpdater">
+        <property name="jobLockService" ref="JobLockService" />
+        <property name="transactionService" ref="TransactionService" />
+        <property name="auditComponent" ref="auditComponent" />
+        <property name="auditService" ref="AuditService" />
+        <property name="searchService" ref="SearchService" />
+        <!-- Need to use private service here to avoid triggering trends audit by updating properties -->
+        <!-- TOOD: tried audit filters, but did not (yet) work -->
+        <property name="nodeService" ref="nodeService" />
+        <property name="behaviourFilter" ref="policyBehaviourFilter" />
+        <property name="consolidator" ref="${project.artifactId}-trendEventConsolidator" />
+        <property name="scoringStrategy" ref="${project.artifactId}-diminishingReturnsScorer" />
+        <property name="storeToProcess" value="${contentTrends.scoring.storeRef}" />
+        <property name="scoringWindowSizeInDays" value="${contentTrends.scoring.windowSizeInDays}" />
+    </bean>
+
+    <bean id="${project.artifactId}-linearScorer" class="com.prodyna.alfresco.contenttrends.repo.module.scoring.LinearNodeEventScoringStrategy">
+        <property name="viewWeight" value="${contentTrends.linearScorer.viewWeight}" />
+        <property name="ratingWeight" value="${contentTrends.linearScorer.ratingWeight}" />
+        <property name="tagWeight" value="${contentTrends.linearScorer.tagWeight}" />
+        <property name="commentWeight" value="${contentTrends.linearScorer.commentWeight}" />
+        <property name="editWeight" value="${contentTrends.linearScorer.editWeight}" />
+        <property name="editEditWeight" value="${contentTrends.linearScorer.edit.editWeight}" />
+        <property name="editContentEditWeight" value="${contentTrends.linearScorer.edit.editContentWeight}" />
+        <property name="copyEditWeight" value="${contentTrends.linearScorer.edit.copyWeight}" />
+        <property name="cociEditWeight" value="${contentTrends.linearScorer.edit.cociWeight}" />
+        <property name="downloadViewWeight" value="${contentTrends.linearScorer.view.downloadWeight}" />
+        <property name="viewViewWeight" value="${contentTrends.linearScorer.view.viewWeight}" />
+    </bean>
+
+    <bean id="${project.artifactId}-diminishingReturnsScorer" class="com.prodyna.alfresco.contenttrends.repo.module.scoring.DiminishingReturnsScoringStrategy">
+    </bean>
+</beans>

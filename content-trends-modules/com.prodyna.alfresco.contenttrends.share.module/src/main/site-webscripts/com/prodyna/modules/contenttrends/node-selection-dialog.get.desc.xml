@@ -1,0 +1,5 @@
+<webscript>
+    <shortname>node-selection-dialog</shortname>
+    <description>Selection dialog for scored nodes</description>
+    <url>/modules/content-trends/node-selection-dialog</url>
+</webscript>

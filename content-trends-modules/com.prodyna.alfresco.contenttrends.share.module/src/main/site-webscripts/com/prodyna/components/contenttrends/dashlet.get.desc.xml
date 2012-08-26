@@ -1,0 +1,6 @@
+<webscript>
+    <shortname>Content Trends</shortname>
+    <description>Component used to content with trend scoring</description>
+    <family>dashlet</family>
+    <url>/components/dashlets/content-trends</url>
+</webscript>

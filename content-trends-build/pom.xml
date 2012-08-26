@@ -1,0 +1,90 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.prodyna.alfresco</groupId>
+        <artifactId>content-trends</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+    <artifactId>content-trends-build</artifactId>
+    <packaging>pom</packaging>
+
+    <properties>
+
+        <!-- just a placeholder property in case a local, patched version of Alfresco is used as the basis -->
+        <enterprise.patch.version>${alfresco.version}</enterprise.patch.version>
+
+    </properties>
+
+    <modules>
+        <module>repository</module>
+        <module>share</module>
+    </modules>
+
+    <build>
+
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-war-plugin</artifactId>
+                    <version>2.1.1</version>
+                    <configuration>
+                        <archiveClasses>false</archiveClasses>
+                        <webappDirectory>${project.build.directory}/${webapp.name}</webappDirectory>
+                        <webResources>
+
+                        </webResources>
+                    </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.alfresco.maven.plugin</groupId>
+                    <artifactId>mmt-maven-plugin</artifactId>
+                    <version>0.2-SNAPSHOT</version>
+                    <extensions>true</extensions>
+                    <executions>
+                        <execution>
+                            <id>unpack-amps</id>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>install</goal>
+                            </goals>
+                            <configuration>
+                                <snapshotToTimestamp>true</snapshotToTimestamp>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself. -->
+                <plugin>
+                    <groupId>org.eclipse.m2e</groupId>
+                    <artifactId>lifecycle-mapping</artifactId>
+                    <version>1.0.0</version>
+                    <configuration>
+                        <lifecycleMappingMetadata>
+                            <pluginExecutions>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>org.apache.maven.plugins</groupId>
+                                        <artifactId>maven-dependency-plugin</artifactId>
+                                        <versionRange>[2.4,)</versionRange>
+                                        <goals>
+                                            <goal>copy</goal>
+                                            <goal>unpack</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <ignore></ignore>
+                                    </action>
+                                </pluginExecution>
+                            </pluginExecutions>
+                        </lifecycleMappingMetadata>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
+    </build>
+</project>

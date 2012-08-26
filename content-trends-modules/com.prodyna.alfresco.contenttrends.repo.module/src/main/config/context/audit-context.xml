@@ -1,0 +1,113 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE beans PUBLIC '-//SPRING//DTD BEAN//EN' 'http://www.springframework.org/dtd/spring-beans.dtd'>
+
+<beans>
+    <!-- Data extractors -->
+
+    <bean name="auditModel.contentTrends.extractor.affectedNodeFromRef" class="com.prodyna.alfresco.contenttrends.repo.module.audit.AffectedContentNodeExtractor">
+        <property name="registry" ref="auditModel.extractorRegistry" />
+        <property name="nodeService" ref="nodeService" />
+        <property name="dictionaryService" ref="dictionaryService" />
+    </bean>
+
+    <bean name="auditModel.contentTrends.extractor.affectedNodeFromChildRef" class="com.prodyna.alfresco.contenttrends.repo.module.audit.AffectedContentNodeFromChildAssocExtractor">
+        <property name="registry" ref="auditModel.extractorRegistry" />
+        <property name="nodeService" ref="nodeService" />
+        <property name="dictionaryService" ref="dictionaryService" />
+    </bean>
+
+    <bean name="auditModel.contentTrends.extractor.affectedNodeFromParentRef" parent="auditModel.contentTrends.extractor.affectedNodeFromChildRef">
+        <property name="parentRef" value="true" />
+    </bean>
+
+    <bean name="auditModel.contentTrends.extractor.nodeEventFromNodeOrType" class="com.prodyna.alfresco.contenttrends.repo.module.audit.NodeEventFromNodeOrTypeExtractor">
+        <property name="registry" ref="auditModel.extractorRegistry" />
+        <property name="nodeService" ref="nodeService" />
+        <property name="dictionaryService" ref="dictionaryService" />
+    </bean>
+    
+    <bean name="auditModel.contentTrends.extractor.nodeEventFromProperties" class="com.prodyna.alfresco.contenttrends.repo.module.audit.NodeEventFromPropertiesExtractor">
+        <property name="registry" ref="auditModel.extractorRegistry" />
+        <property name="dictionaryService" ref="dictionaryService" />
+    </bean>
+
+    <bean name="auditModel.contentTrends.extractor.nodeEventFromAspect" class="com.prodyna.alfresco.contenttrends.repo.module.audit.NodeEventFromAspectExtractor">
+        <property name="registry" ref="auditModel.extractorRegistry" />
+        <property name="dictionaryService" ref="dictionaryService" />
+    </bean>
+    
+    <bean name="auditModel.contentTrends.extractor.viewEventFromThumbnailName" class="com.prodyna.alfresco.contenttrends.repo.module.audit.ViewEventFromThumbnailNameExtractor">
+        <property name="registry" ref="auditModel.extractorRegistry" />
+        <property name="thumbnailService" ref="thumbnailService" />
+    </bean>
+    
+    <!-- Is not reliable enough -->
+    <!-- 
+    <bean name="auditModel.contentTrends.extractor.eventFromContentReadNode" class="com.prodyna.alfresco.contenttrends.repo.module.audit.EventFromContentReadNodeExtractor">
+        <property name="registry" ref="auditModel.extractorRegistry" />
+        <property name="nodeService" ref="nodeService" />
+        <property name="dictionaryService" ref="dictionaryService" />
+        <property name="thumbnailService" ref="thumbnailService" />
+    </bean>
+     -->
+
+    <!-- Data Generators -->
+    <!-- 
+    <bean name="auditModel.contentTrends.generator.txnId" class="com.prodyna.alfresco.contenttrends.repo.module.audit.TransactionDbIdGenerator">
+        <property name="registry" ref="auditModel.generatorRegistry" />
+    </bean>
+     -->
+    <bean name="auditModel.contentTrends.generator.txnId" class="org.alfresco.repo.audit.generator.TransactionIdDataGenerator">
+        <property name="registry" ref="auditModel.generatorRegistry" />
+    </bean>
+
+    <bean name="auditModel.contentTrends.generator.userHash" class="com.prodyna.alfresco.contenttrends.repo.module.audit.UserHashGenerator">
+        <property name="registry" ref="auditModel.generatorRegistry" />
+        <property name="personService" ref="personService" />
+    </bean>
+
+    <bean name="auditModel.contentTrends.generator.editEvent" class="com.prodyna.alfresco.contenttrends.repo.module.audit.SimpleEventGenerator">
+        <property name="registry" ref="auditModel.generatorRegistry" />
+        <property name="eventType" value="EDIT" />
+    </bean>
+
+    <bean name="auditModel.contentTrends.generator.editContentEvent" class="com.prodyna.alfresco.contenttrends.repo.module.audit.SimpleEventGenerator">
+        <property name="registry" ref="auditModel.generatorRegistry" />
+        <property name="eventType" value="EDIT_CONTENT" />
+    </bean>
+
+    <bean name="auditModel.contentTrends.generator.tagEvent" class="com.prodyna.alfresco.contenttrends.repo.module.audit.SimpleEventGenerator">
+        <property name="registry" ref="auditModel.generatorRegistry" />
+        <property name="eventType" value="TAG" />
+    </bean>
+    
+    <bean name="auditModel.contentTrends.generator.ratingEvent" class="com.prodyna.alfresco.contenttrends.repo.module.audit.SimpleEventGenerator">
+        <property name="registry" ref="auditModel.generatorRegistry" />
+        <property name="eventType" value="RATE" />
+    </bean>
+
+    <bean name="auditModel.contentTrends.generator.cociEvent" class="com.prodyna.alfresco.contenttrends.repo.module.audit.SimpleEventGenerator">
+        <property name="registry" ref="auditModel.generatorRegistry" />
+        <property name="eventType" value="COCI" />
+    </bean>
+
+    <bean name="auditModel.contentTrends.generator.lockEvent" class="com.prodyna.alfresco.contenttrends.repo.module.audit.SimpleEventGenerator">
+        <property name="registry" ref="auditModel.generatorRegistry" />
+        <property name="eventType" value="LOCK" />
+    </bean>
+
+    <bean name="auditModel.contentTrends.generator.copyEvent" class="com.prodyna.alfresco.contenttrends.repo.module.audit.SimpleEventGenerator">
+        <property name="registry" ref="auditModel.generatorRegistry" />
+        <property name="eventType" value="COPY" />
+    </bean>
+
+    <bean name="auditModel.contentTrends.generator.cancelCociEvent" class="com.prodyna.alfresco.contenttrends.repo.module.audit.SimpleEventGenerator">
+        <property name="registry" ref="auditModel.generatorRegistry" />
+        <property name="eventType" value="CANCEL_COCI" />
+    </bean>
+    
+    <bean name="auditModel.contentTrends.generator.downloadEvent" class="com.prodyna.alfresco.contenttrends.repo.module.audit.SimpleEventGenerator">
+        <property name="registry" ref="auditModel.generatorRegistry" />
+        <property name="eventType" value="DOWNLOAD" />
+    </bean>
+</beans>

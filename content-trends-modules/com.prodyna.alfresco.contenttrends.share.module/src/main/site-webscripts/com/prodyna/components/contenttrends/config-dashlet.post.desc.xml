@@ -1,0 +1,6 @@
+<webscript>
+  <shortname>config-content-trends-dashlet</shortname>
+  <description>Configuration update for Content Trends dashlet</description>
+  <url>/components/dashlets/content-trends/{componentId}</url>
+  <format default="json">argument</format>
+</webscript>

@@ -1,0 +1,511 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Audit xmlns="http://www.alfresco.org/repo/audit/model/3.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.alfresco.org/repo/audit/model/3.2 alfresco-audit-3.2.xsd">
+
+    <DataExtractors>
+        <DataExtractor name="simpleValue" registeredName="auditModel.extractor.simpleValue" />
+        <DataExtractor name="nullValue" registeredName="auditModel.extractor.nullValue" />
+
+        <DataExtractor name="affectedNodeFromRefExtractor" registeredName="auditModel.contentTrends.extractor.affectedNodeFromRef" />
+        <DataExtractor name="affectedNodeFromParentRefExtractor" registeredName="auditModel.contentTrends.extractor.affectedNodeFromParentRef" />
+        <DataExtractor name="affectedNodeFromChildRefExtractor" registeredName="auditModel.contentTrends.extractor.affectedNodeFromChildRef" />
+
+        <DataExtractor name="nodeEventFromNodeOrType" registeredName="auditModel.contentTrends.extractor.nodeEventFromNodeOrType" />
+        <DataExtractor name="nodeEventFromProperties" registeredName="auditModel.contentTrends.extractor.nodeEventFromProperties" />
+        <DataExtractor name="nodeEventFromAspect" registeredName="auditModel.contentTrends.extractor.nodeEventFromAspect" />
+
+        <DataExtractor name="viewEventFromThumbnailName" registeredName="auditModel.contentTrends.extractor.viewEventFromThumbnailName" />
+        
+        <!-- Is not reliable enough -->
+        <!-- <DataExtractor name="eventFromContentReadNode" registeredName="auditModel.contentTrends.extractor.eventFromContentReadNode" /> -->
+    </DataExtractors>
+
+    <DataGenerators>
+        <DataGenerator name="txnId" registeredName="auditModel.contentTrends.generator.txnId" />
+        <DataGenerator name="editEvent" registeredName="auditModel.contentTrends.generator.editEvent" />
+        <DataGenerator name="editContentEvent" registeredName="auditModel.contentTrends.generator.editContentEvent" />
+        <DataGenerator name="tagEvent" registeredName="auditModel.contentTrends.generator.tagEvent" />
+        <DataGenerator name="ratingEvent" registeredName="auditModel.contentTrends.generator.ratingEvent" />
+        <DataGenerator name="lockEvent" registeredName="auditModel.contentTrends.generator.lockEvent" />
+        <DataGenerator name="cancelCociEvent" registeredName="auditModel.contentTrends.generator.cancelCociEvent" />
+        <DataGenerator name="copyEvent" registeredName="auditModel.contentTrends.generator.copyEvent" />
+        <DataGenerator name="cociEvent" registeredName="auditModel.contentTrends.generator.cociEvent" />
+        <DataGenerator name="downloadEvent" registeredName="auditModel.contentTrends.generator.downloadEvent" />
+    </DataGenerators>
+
+    <PathMappings>
+        <PathMap source="/ContentTrendsBase" target="/ContentTrendsBase" />
+
+        <PathMap source="/alfresco-api/post/NodeService" target="/ContentTrendsBase/NodeService" />
+        <PathMap source="/alfresco-api/pre/NodeService/deleteNode" target="/PreContentTrendsBase/NodeService/deleteNode" />
+
+        <PathMap source="/alfresco-api/post/PermissionService" target="/ContentTrendsBase/PermissionsService" />
+        <PathMap source="/alfresco-api/post/TaggingService" target="/ContentTrendsBase/TaggingService" />
+        <PathMap source="/alfresco-api/post/CheckOutCheckInService" target="/ContentTrendsBase/CheckOutCheckInService" />
+        <PathMap source="/alfresco-api/pre/CheckOutCheckInService/checkin" target="/PreContentTrendsBase/CheckOutCheckInService/checkin" />
+        <PathMap source="/alfresco-api/post/LockService" target="/ContentTrendsBase/LockService" />
+        <PathMap source="/alfresco-api/post/CopyService" target="/ContentTrendsBase/CopyService" />
+        <PathMap source="/alfresco-api/post/ThumbnailService" target="/ContentTrendsBase/ThumbnailService" />
+
+        <!-- 
+            Note: Due to actual writes being delegated to ContentWriter, the ContentService can not be used to audit successful write events
+            Note: Downloads are near impossible to audit correctly without significant changes to several points of the architecture
+            
+            The ContentAuditor pseudo-path can be used to manually record audit events when approriate
+        -->
+        <PathMap source="/alfresco-api/post/ContentService" target="/ContentTrendsBase/ContentService" />
+        <PathMap source="/ContentTrendsBase/ContentAuditor" target="/ContentTrendsBase/ContentService" />
+
+        <!-- Note: RatingService is not auditable and doesn't use public NodeService bean, so we have to use an audit policy -->
+        <PathMap source="/ContentTrendsBase/RatingAuditor" target="/ContentTrendsBase/RatingService" />
+
+        <PathMap source="/ContentTrends" target="/ContentTrends" />
+    </PathMappings>
+
+    <Application name="PreCallDataContentTrendsBase" key="PreContentTrendsBase">
+    
+        <AuditPath key="NodeService">
+            <AuditPath key="deleteNode">
+                <RecordValue key="affectedPrimaryNode" dataSource="/PreContentTrendsBase/NodeService/deleteNode/args/nodeRef"
+                    dataTrigger="/PreContentTrendsBase/NodeService/deleteNode/args/nodeRef" dataExtractor="affectedNodeFromRefExtractor" />
+                <RecordValue key="event" dataSource="/PreContentTrendsBase/NodeService/deleteNode/args/nodeRef" dataTrigger="/PreContentTrendsBase/NodeService/deleteNode/args/nodeRef"
+                    dataExtractor="nodeEventFromNodeOrType" />
+                <AuditPath key="args">
+                    <AuditPath key="nodeRef" />
+                </AuditPath>
+            </AuditPath>
+        </AuditPath>
+        
+        <AuditPath key="CheckOutCheckInService">
+            <AuditPath key="checkin">
+                <RecordValue key="workingCopyNode" dataSource="/PreContentTrendsBase/CheckOutCheckInService/checkin/args/workingCopyNodeRef"
+                    dataTrigger="/PreContentTrendsBase/CheckOutCheckInService/checkin/args/workingCopyNodeRef" dataExtractor="affectedNodeFromRefExtractor" />
+                <AuditPath key="args">
+                    <AuditPath key="workingCopyNodeRef" />
+                </AuditPath>
+            </AuditPath>
+        </AuditPath>
+        
+    </Application>
+
+    <Application name="ContentTrendsBase" key="ContentTrendsBase">
+    
+        <!-- Note: For txn and user to be triggered, we need either a full AuditPath that matches one of the value paths from the actual audit invocation 
+            (either a RecordValue or empty AuditPath - RecordValue with dataTrigger is not sufficient) -->
+        <GenerateValue key="txn" dataGenerator="txnId" />
+
+        <AuditPath key="PermissionService">
+        
+            <AuditPath key="deletePermissions">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/PermissionService/deletePermissions/args/nodeRef"
+                    dataTrigger="/ContentTrendsBase/PermissionService/deletePermissions/no-error" dataExtractor="affectedNodeFromRefExtractor" />
+                <GenerateValue key="event" dataGenerator="editEvent" />
+                <AuditPath key="no-error" />
+            </AuditPath>
+            
+            <AuditPath key="clearPermissions">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/PermissionService/clearPermissions/args/nodeRef"
+                    dataTrigger="/ContentTrendsBase/PermissionService/clearPermissions/no-error" dataExtractor="affectedNodeFromRefExtractor" />
+                <GenerateValue key="event" dataGenerator="editEvent" />
+                <AuditPath key="no-error" />
+            </AuditPath>
+            
+            <AuditPath key="deletePermission">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/PermissionService/deletePermission/args/nodeRef"
+                    dataTrigger="/ContentTrendsBase/PermissionService/deletePermission/no-error" dataExtractor="affectedNodeFromRefExtractor" />
+                <GenerateValue key="event" dataGenerator="editEvent" />
+                <AuditPath key="no-error" />
+            </AuditPath>
+            
+            <AuditPath key="setPermission">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/PermissionService/setPermission/args/nodeRef"
+                    dataTrigger="/ContentTrendsBase/PermissionService/setPermission/no-error" dataExtractor="affectedNodeFromRefExtractor" />
+                <GenerateValue key="event" dataGenerator="editEvent" />
+                <AuditPath key="no-error" />
+            </AuditPath>
+            
+            <AuditPath key="setInheritParentPermissions">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/PermissionService/setInheritParentPermissions/args/nodeRef"
+                    dataTrigger="/ContentTrendsBase/PermissionService/setInheritParentPermissions/no-error" dataExtractor="affectedNodeFromRefExtractor" />
+                <GenerateValue key="event" dataGenerator="editEvent" />
+                <AuditPath key="no-error" />
+            </AuditPath>
+            
+        </AuditPath>
+
+        <AuditPath key="NodeService">
+        
+            <AuditPath key="createNode">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/NodeService/createNode/result" dataTrigger="/ContentTrendsBase/NodeService/createNode/no-error"
+                    dataExtractor="affectedNodeFromChildRefExtractor" />
+                <RecordValue key="affectedSecondaryNode" dataSource="/ContentTrendsBase/NodeService/createNode/args/parentRef"
+                    dataTrigger="/ContentTrendsBase/NodeService/createNode/no-error" dataExtractor="affectedNodeFromRefExtractor" />
+                <RecordValue key="event" dataSource="/ContentTrendsBase/NodeService/createNode/args/nodeTypeQName" dataTrigger="/ContentTrendsBase/NodeService/createNode/no-error"
+                    dataExtractor="nodeEventFromNodeOrType" />
+                <AuditPath key="no-error" />
+            </AuditPath>
+            
+            <AuditPath key="deleteNode">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/preCallData/PreContentTrendsBase/NodeService/deleteNode/affectedPrimaryNode"
+                    dataTrigger="/ContentTrendsBase/NodeService/deleteNode/no-error" dataExtractor="simpleValue" />
+                <RecordValue key="event" dataSource="/ContentTrendsBase/preCallData/PreContentTrendsBase/NodeService/deleteNode/event"
+                    dataTrigger="/ContentTrendsBase/NodeService/deleteNode/no-error" dataExtractor="simpleValue" />
+                <AuditPath key="no-error" />
+            </AuditPath>
+            
+            <AuditPath key="moveNode">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/NodeService/moveNode/args/nodeToMoveRef"
+                    dataTrigger="/ContentTrendsBase/NodeService/moveNode/no-error" dataExtractor="affectedNodeFromRefExtractor" />
+                <GenerateValue key="event" dataGenerator="editEvent" />
+                <AuditPath key="no-error" />
+            </AuditPath>
+            
+            <AuditPath key="setType">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/NodeService/setType/args/nodeRef" dataTrigger="/ContentTrendsBase/NodeService/setType/no-error"
+                    dataExtractor="affectedNodeFromRefExtractor" />
+                <GenerateValue key="event" dataGenerator="editEvent" />
+                <AuditPath key="no-error" />
+            </AuditPath>
+            
+            <AuditPath key="addAspect">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/NodeService/addAspect/args/nodeRef"
+                    dataTrigger="/ContentTrendsBase/NodeService/addAspect/no-error" dataExtractor="affectedNodeFromRefExtractor" />
+                <RecordValue key="nodeEvent" dataSource="/ContentTrendsBase/NodeService/addAspect/args/nodeRef" dataTrigger="/ContentTrendsBase/NodeService/addAspect/no-error"
+                    dataExtractor="nodeEventFromNodeOrType" />
+                <RecordValue key="aspectEvent" dataSource="/ContentTrendsBase/NodeService/addAspect/args/aspectTypeQName"
+                    dataTrigger="/ContentTrendsBase/NodeService/addAspect/no-error" dataExtractor="nodeEventFromAspect" />
+                <RecordValue key="propertyEvent" dataSource="/ContentTrendsBase/NodeService/addAspect/args/aspectProperties"
+                    dataTrigger="/ContentTrendsBase/NodeService/addAspect/no-error" dataExtractor="nodeEventFromProperties" />
+                <AuditPath key="no-error" />
+            </AuditPath>
+            
+            <AuditPath key="removeAspect">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/NodeService/removeAspect/args/nodeRef"
+                    dataTrigger="/ContentTrendsBase/NodeService/removeAspect/no-error" dataExtractor="affectedNodeFromRefExtractor" />
+                <RecordValue key="nodeEvent" dataSource="/ContentTrendsBase/NodeService/removeAspect/args/nodeRef" dataTrigger="/ContentTrendsBase/NodeService/removeAspect/no-error"
+                    dataExtractor="nodeEventFromNodeOrType" />
+                <RecordValue key="aspectEvent" dataSource="/ContentTrendsBase/NodeService/removeAspect/args/aspectTypeQName"
+                    dataTrigger="/ContentTrendsBase/NodeService/removeAspect/no-error" dataExtractor="nodeEventFromAspect" />
+                <AuditPath key="no-error" />
+            </AuditPath>
+            
+            <AuditPath key="addChild">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/NodeService/addChild/args/childRef"
+                    dataTrigger="/ContentTrendsBase/NodeService/addChild/no-error" dataExtractor="affectedNodeFromRefExtractor" />
+                <RecordValue key="affectedSecondaryNode" dataSource="/ContentTrendsBase/NodeService/addChild/args/parentRef"
+                    dataTrigger="/ContentTrendsBase/NodeService/addChild/no-error" dataExtractor="affectedNodeFromRefExtractor" />
+                <RecordValue key="affectedTertiaryNode" dataSource="/ContentTrendsBase/NodeService/addChild/args/parentRefs"
+                    dataTrigger="/ContentTrendsBase/NodeService/addChild/no-error" dataExtractor="affectedNodeFromRefExtractor" />
+                <GenerateValue key="event" dataGenerator="editEvent" />
+                <AuditPath key="no-error" />
+            </AuditPath>
+            
+            <AuditPath key="removeChild">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/NodeService/removeChild/args/childRef"
+                    dataTrigger="/ContentTrendsBase/NodeService/removeChild/no-error" dataExtractor="affectedNodeFromRefExtractor" />
+                <RecordValue key="affectedSecondaryNode" dataSource="/ContentTrendsBase/NodeService/removeChild/args/parentRef"
+                    dataTrigger="/ContentTrendsBase/NodeService/removeChild/no-error" dataExtractor="affectedNodeFromRefExtractor" />
+                <GenerateValue key="event" dataGenerator="editEvent" />
+                <AuditPath key="no-error" />
+            </AuditPath>
+            
+            <AuditPath key="removeChildAssociation">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/NodeService/removeChildAssociation/args/childAssocRef"
+                    dataTrigger="/ContentTrendsBase/NodeService/removeChildAssociation/no-error" dataExtractor="affectedNodeFromChildRefExtractor" />
+                <RecordValue key="affectedSecondaryNode" dataSource="/ContentTrendsBase/NodeService/removeChildAssociation/args/childAssocRef"
+                    dataTrigger="/ContentTrendsBase/NodeService/removeChildAssociation/no-error" dataExtractor="affectedNodeFromParentRefExtractor" />
+                <GenerateValue key="event" dataGenerator="editEvent" />
+                <AuditPath key="no-error" />
+            </AuditPath>
+            
+            <AuditPath key="removeSecondaryChildAssociation">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/NodeService/removeSecondaryChildAssociation/args/childAssocRef"
+                    dataTrigger="/ContentTrendsBase/NodeService/removeSecondaryChildAssociation/no-error" dataExtractor="affectedNodeFromChildRefExtractor" />
+                <RecordValue key="affectedSecondaryNode" dataSource="/ContentTrendsBase/NodeService/removeSecondaryChildAssociation/args/childAssocRef"
+                    dataTrigger="/ContentTrendsBase/NodeService/removeSecondaryChildAssociation/no-error" dataExtractor="affectedNodeFromParentRefExtractor" />
+                <GenerateValue key="event" dataGenerator="editEvent" />
+                <AuditPath key="no-error" />
+            </AuditPath>
+            
+            <AuditPath key="setProperties">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/NodeService/setProperties/args/nodeRef"
+                    dataTrigger="/ContentTrendsBase/NodeService/setProperties/no-error" dataExtractor="affectedNodeFromRefExtractor" />
+
+                <!-- TODO: How to protected against non-rating / non-comment changes on rating / comment nodes? -->
+                <RecordValue key="nodeEvent" dataSource="/ContentTrendsBase/NodeService/setProperties/args/nodeRef" dataTrigger="/ContentTrendsBase/NodeService/setProperties/no-error"
+                    dataExtractor="nodeEventFromNodeOrType" />
+                <RecordValue key="propertyEvent" dataSource="/ContentTrendsBase/NodeService/setProperties/args/properties"
+                    dataTrigger="/ContentTrendsBase/NodeService/setProperties/no-error" dataExtractor="nodeEventFromProperties" />
+                <AuditPath key="no-error" />
+            </AuditPath>
+            
+            <AuditPath key="setProperty">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/NodeService/setProperty/args/nodeRef"
+                    dataTrigger="/ContentTrendsBase/NodeService/setProperty/no-error" dataExtractor="affectedNodeFromRefExtractor" />
+
+                <RecordValue key="nodeEvent" dataSource="/ContentTrendsBase/NodeService/setProperty/args/nodeRef" dataTrigger="/ContentTrendsBase/NodeService/setProperty/no-error"
+                    dataExtractor="nodeEventFromNodeOrType" />
+                <RecordValue key="propertyEvent" dataSource="/ContentTrendsBase/NodeService/setProperty/args/qname" dataTrigger="/ContentTrendsBase/NodeService/setProperty/no-error"
+                    dataExtractor="nodeEventFromProperties" />
+                <AuditPath key="no-error" />
+            </AuditPath>
+            
+            <AuditPath key="addProperties">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/NodeService/addProperties/args/nodeRef"
+                    dataTrigger="/ContentTrendsBase/NodeService/addProperties/no-error" dataExtractor="affectedNodeFromRefExtractor" />
+
+                <RecordValue key="nodeEvent" dataSource="/ContentTrendsBase/NodeService/addProperties/args/nodeRef" dataTrigger="/ContentTrendsBase/NodeService/addProperties/no-error"
+                    dataExtractor="nodeEventFromNodeOrType" />
+                <RecordValue key="propertyEvent" dataSource="/ContentTrendsBase/NodeService/addProperties/args/properties"
+                    dataTrigger="/ContentTrendsBase/NodeService/addProperties/no-error" dataExtractor="nodeEventFromProperties" />
+                <AuditPath key="no-error" />
+            </AuditPath>
+            
+            <AuditPath key="removeProperty">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/NodeService/removeProperty/args/nodeRef"
+                    dataTrigger="/ContentTrendsBase/NodeService/removeProperty/no-error" dataExtractor="affectedNodeFromRefExtractor" />
+
+                <RecordValue key="nodeEvent" dataSource="/ContentTrendsBase/NodeService/removeProperty/args/nodeRef" dataTrigger="/ContentTrendsBase/NodeService/removeProperty/no-error"
+                    dataExtractor="nodeEventFromNodeOrType" />
+                <RecordValue key="propertyEvent" dataSource="/ContentTrendsBase/NodeService/removeProperty/args/qname" dataTrigger="/ContentTrendsBase/NodeService/removeProperty/no-error"
+                    dataExtractor="nodeEventFromProperties" />
+                <AuditPath key="no-error" />
+            </AuditPath>
+            
+            <AuditPath key="removeAssociation">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/NodeService/removeAssociation/args/sourceRef"
+                    dataTrigger="/ContentTrendsBase/NodeService/removeAssociation/no-error" dataExtractor="affectedNodeFromRefExtractor" />
+                <RecordValue key="affectedSecondaryNode" dataSource="/ContentTrendsBase/NodeService/removeAssociation/args/targetRef"
+                    dataTrigger="/ContentTrendsBase/NodeService/removeAssociation/no-error" dataExtractor="affectedNodeFromRefExtractor" />
+                <GenerateValue key="event" dataGenerator="editEvent" />
+                <AuditPath key="no-error" />
+            </AuditPath>
+            
+            <AuditPath key="setAssociations">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/NodeService/setAssociations/args/sourceRef"
+                    dataTrigger="/ContentTrendsBase/NodeService/setAssociations/no-error" dataExtractor="affectedNodeFromRefExtractor" />
+                <RecordValue key="affectedSecondaryNode" dataSource="/ContentTrendsBase/NodeService/setAssociations/args/targetRefs"
+                    dataTrigger="/ContentTrendsBase/NodeService/setAssociations/no-error" dataExtractor="affectedNodeFromRefExtractor" />
+                <GenerateValue key="event" dataGenerator="editEvent" />
+                <AuditPath key="no-error" />
+            </AuditPath>
+
+        </AuditPath>
+
+        <AuditPath key="TaggingService">
+        
+            <AuditPath key="addTag">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/TaggingService/addTag/args/nodeRef"
+                    dataTrigger="/ContentTrendsBase/TaggingService/addTag/no-error" dataExtractor="affectedNodeFromRefExtractor" />
+                <GenerateValue key="event" dataGenerator="tagEvent" />
+                <AuditPath key="no-error" />
+            </AuditPath>
+            
+            <AuditPath key="addTags">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/TaggingService/addTags/args/nodeRef"
+                    dataTrigger="/ContentTrendsBase/TaggingService/addTags/no-error" dataExtractor="affectedNodeFromRefExtractor" />
+                <GenerateValue key="event" dataGenerator="tagEvent" />
+                <AuditPath key="no-error" />
+            </AuditPath>
+            
+            <AuditPath key="removeTag">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/TaggingService/removeTag/args/nodeRef"
+                    dataTrigger="/ContentTrendsBase/TaggingService/removeTag/no-error" dataExtractor="affectedNodeFromRefExtractor" />
+                <GenerateValue key="event" dataGenerator="tagEvent" />
+                <AuditPath key="no-error" />
+            </AuditPath>
+            
+            <AuditPath key="removeTags">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/TaggingService/removeTags/args/nodeRef"
+                    dataTrigger="/ContentTrendsBase/TaggingService/removeTags/no-error" dataExtractor="affectedNodeFromRefExtractor" />
+                <GenerateValue key="event" dataGenerator="tagEvent" />
+                <AuditPath key="no-error" />
+            </AuditPath>
+            
+            <AuditPath key="setTags">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/TaggingService/setTags/args/nodeRef"
+                    dataTrigger="/ContentTrendsBase/TaggingService/setTags/no-error" dataExtractor="affectedNodeFromRefExtractor" />
+                <GenerateValue key="event" dataGenerator="tagEvent" />
+                <AuditPath key="no-error" />
+            </AuditPath>
+            
+            <AuditPath key="clearTags">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/TaggingService/clearTags/args/nodeRef"
+                    dataTrigger="/ContentTrendsBase/TaggingService/clearTags/no-error" dataExtractor="affectedNodeFromRefExtractor" />
+                <GenerateValue key="event" dataGenerator="tagEvent" />
+                <AuditPath key="no-error" />
+            </AuditPath>
+            
+        </AuditPath>
+
+        <AuditPath key="CheckOutCheckInService">
+        
+            <AuditPath key="checkout">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/CheckOutCheckInService/checkout/args/nodeRef"
+                    dataTrigger="/ContentTrendsBase/CheckOutCheckInService/checkout/no-error" dataExtractor="affectedNodeFromRefExtractor" />
+                <GenerateValue key="event" dataGenerator="cociEvent" />
+                <AuditPath key="no-error" />
+            </AuditPath>
+            
+            <AuditPath key="checkin">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/CheckOutCheckInService/checkin/result"
+                    dataTrigger="/ContentTrendsBase/CheckOutCheckInService/checkin/no-error" dataExtractor="affectedNodeFromRefExtractor" />
+                <RecordValue key="workingCopyNode"
+                    dataSource="/ContentTrendsBase/preCallData/PreContentTrendsBase/CheckOutCheckInService/checkin/workingCopyNode" dataTrigger="/ContentTrendsBase/CheckOutCheckInService/checkin/no-error"
+                    dataExtractor="simpleValue" />
+                <GenerateValue key="event" dataGenerator="cociEvent" />
+                <AuditPath key="no-error" />
+            </AuditPath>
+            
+            <AuditPath key="cancelCheckout">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/CheckOutCheckInService/cancelCheckout/result"
+                    dataTrigger="/ContentTrendsBase/CheckOutCheckInService/cancelCheckout/no-error" dataExtractor="affectedNodeFromRefExtractor" />
+                <GenerateValue key="event" dataGenerator="cancelCociEvent" />
+                <AuditPath key="no-error" />
+            </AuditPath>
+            
+        </AuditPath>
+
+        <AuditPath key="CopyService">
+        
+            <AuditPath key="copy">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/CopyService/copy/args/sourceNodeRef"
+                    dataTrigger="/ContentTrendsBase/CopyService/copy/no-error" dataExtractor="affectedNodeFromRefExtractor" />
+                <RecordValue key="affectedSecondaryNode" dataSource="/ContentTrendsBase/CopyService/copy/result" dataTrigger="/ContentTrendsBase/CopyService/copy/no-error"
+                    dataExtractor="affectedNodeFromRefExtractor" />
+                <RecordValue key="affectedTertiaryNode" dataSource="/ContentTrendsBase/CopyService/copy/args/destinationNodeRef"
+                    dataTrigger="/ContentTrendsBase/CopyService/copy/no-error" dataExtractor="affectedNodeFromRefExtractor" />
+                <GenerateValue key="event" dataGenerator="copyEvent" />
+                <AuditPath key="no-error" />
+            </AuditPath>
+            
+            <AuditPath key="copyAndRename">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/CopyService/copyAndRename/args/sourceNodeRef"
+                    dataTrigger="/ContentTrendsBase/CopyService/copyAndRename/no-error" dataExtractor="affectedNodeFromRefExtractor" />
+                <RecordValue key="affectedSecondaryNode" dataSource="/ContentTrendsBase/CopyService/copyAndRename/result"
+                    dataTrigger="/ContentTrendsBase/CopyService/copyAndRename/no-error" dataExtractor="affectedNodeFromRefExtractor" />
+                <GenerateValue key="event" dataGenerator="copyEvent" />
+                <AuditPath key="no-error" />
+            </AuditPath>
+            
+        </AuditPath>
+
+        <AuditPath key="LockService">
+        
+            <AuditPath key="lock">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/LockService/lock/args/nodeRef" dataTrigger="/ContentTrendsBase/LockService/lock/no-error"
+                    dataExtractor="affectedNodeFromRefExtractor" />
+                <GenerateValue key="event" dataGenerator="lockEvent" />
+                <AuditPath key="no-error" />
+            </AuditPath>
+            
+            <AuditPath key="unlock">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/LockService/unlock/args/nodeRef" dataTrigger="/ContentTrendsBase/LockService/unlock/no-error"
+                    dataExtractor="affectedNodeFromRefExtractor" />
+                <GenerateValue key="event" dataGenerator="lockEvent" />
+                <AuditPath key="no-error" />
+            </AuditPath>
+            
+        </AuditPath>
+
+        <AuditPath key="ContentService">
+        
+            <AuditPath key="writeContent">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/ContentService/writeContent/nodeRef"
+                    dataTrigger="/ContentTrendsBase/ContentService/writeContent/nodeRef" dataExtractor="affectedNodeFromRefExtractor" />
+                <RecordValue key="nodeEvent" dataSource="/ContentTrendsBase/ContentService/writeContent/nodeRef" dataTrigger="/ContentTrendsBase/ContentService/writeContent/nodeRef"
+                    dataExtractor="nodeEventFromNodeOrType" />
+                <GenerateValue key="propertyEvent" dataGenerator="editContentEvent" />
+                <AuditPath key="nodeRef" />
+            </AuditPath>
+            
+            <!-- Is not reliable enough -->
+            <!-- 
+            <AuditPath key="getReader">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/ContentService/getReader/args/nodeRef"
+                    dataTrigger="/ContentTrendsBase/ContentService/getReader/no-error" dataExtractor="affectedNodeFromRefExtractor" />
+                <RecordValue key="event" dataSource="/ContentTrendsBase/ContentService/getReader/args/nodeRef" dataTrigger="/ContentTrendsBase/ContentService/getReader/no-error"
+                    dataExtractor="eventFromContentReadNode" />
+                <AuditPath key="no-error" />
+            </AuditPath>
+             -->
+             
+             <!-- Abstract path for someone to manually record audit values -->
+             <AuditPath key="downloadContent">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/ContentService/downloadContent/nodeRef"
+                    dataTrigger="/ContentTrendsBase/ContentService/downloadContent/nodeRef" dataExtractor="affectedNodeFromRefExtractor" />
+                <GenerateValue key="event" dataGenerator="downloadEvent" />
+                <AuditPath key="nodeRef" />
+            </AuditPath>
+            
+        </AuditPath>
+
+        <AuditPath key="RatingService">
+            <AuditPath key="createRating">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/RatingService/createRating/nodeRef"
+                    dataTrigger="/ContentTrendsBase/RatingService/createRating/nodeRef" dataExtractor="affectedNodeFromRefExtractor" />
+                <GenerateValue key="event" dataGenerator="ratingEvent" />
+                <AuditPath key="nodeRef" />
+            </AuditPath>
+            <AuditPath key="updateRating">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/RatingService/updateRating/nodeRef"
+                    dataTrigger="/ContentTrendsBase/RatingService/updateRating/nodeRef" dataExtractor="affectedNodeFromRefExtractor" />
+                <GenerateValue key="event" dataGenerator="ratingEvent" />
+                <AuditPath key="nodeRef" />
+            </AuditPath>
+            <AuditPath key="deleteRating">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/RatingService/deleteRating/nodeRef"
+                    dataTrigger="/ContentTrendsBase/RatingService/deleteRating/nodeRef" dataExtractor="affectedNodeFromRefExtractor" />
+                <GenerateValue key="event" dataGenerator="ratingEvent" />
+                <AuditPath key="nodeRef" />
+            </AuditPath>
+        </AuditPath>
+
+        <AuditPath key="ThumbnailService">
+            <AuditPath key="getThumbnailByName">
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/ThumbnailService/getThumbnailByName/args/node"
+                    dataTrigger="/ContentTrendsBase/ThumbnailService/getThumbnailByName/no-error" dataExtractor="affectedNodeFromRefExtractor" />
+                <RecordValue key="event" dataSource="/ContentTrendsBase/ThumbnailService/getThumbnailByName/args/thumbnailName"
+                    dataTrigger="/ContentTrendsBase/ThumbnailService/getThumbnailByName/no-error" dataExtractor="viewEventFromThumbnailName" />
+                <AuditPath key="no-error" />
+            </AuditPath>
+        </AuditPath>
+    </Application>
+
+    <Application name="ContentTrends" key="ContentTrends">
+        <AuditPath key="Aggregated">
+            <RecordValue key="user" dataExtractor="simpleValue" dataSource="/ContentTrends/Aggregated/user" dataTrigger="/ContentTrends/Aggregated/user" />
+            <RecordValue key="hour" dataExtractor="simpleValue" dataSource="/ContentTrends/Aggregated/hour" dataTrigger="/ContentTrends/Aggregated/hour" />
+            <RecordValue key="nodeRef" dataExtractor="simpleValue" dataSource="/ContentTrends/Aggregated/nodeRef" dataTrigger="/ContentTrends/Aggregated/nodeRef" />
+            <RecordValue key="checkedInWorkingCopies" dataExtractor="simpleValue" dataSource="/ContentTrends/Aggregated/checkedInWorkingCopies"
+                dataTrigger="/ContentTrends/Aggregated/checkedInWorkingCopies" />
+
+            <RecordValue key="EDIT" dataExtractor="simpleValue" dataSource="/ContentTrends/Aggregated/EDIT" dataTrigger="/ContentTrends/Aggregated/EDIT" />
+            <RecordValue key="TAG" dataExtractor="simpleValue" dataSource="/ContentTrends/Aggregated/TAG" dataTrigger="/ContentTrends/Aggregated/TAG" />
+            <RecordValue key="EDIT_CONTENT" dataExtractor="simpleValue" dataSource="/ContentTrends/Aggregated/EDIT_CONTENT"
+                dataTrigger="/ContentTrends/Aggregated/EDIT_CONTENT" />
+            <RecordValue key="RATE" dataExtractor="simpleValue" dataSource="/ContentTrends/Aggregated/RATE" dataTrigger="/ContentTrends/Aggregated/RATE" />
+            <RecordValue key="COMMENT" dataExtractor="simpleValue" dataSource="/ContentTrends/Aggregated/COMMENT" dataTrigger="/ContentTrends/Aggregated/COMMENT" />
+            <RecordValue key="LOCK" dataExtractor="simpleValue" dataSource="/ContentTrends/Aggregated/LOCK" dataTrigger="/ContentTrends/Aggregated/LOCK" />
+            <RecordValue key="CANCEL_COCI" dataExtractor="simpleValue" dataSource="/ContentTrends/Aggregated/CANCEL_COCI"
+                dataTrigger="/ContentTrends/Aggregated/CANCEL_COCI" />
+            <RecordValue key="COCI" dataExtractor="simpleValue" dataSource="/ContentTrends/Aggregated/COCI" dataTrigger="/ContentTrends/Aggregated/COCI" />
+            <RecordValue key="COPY" dataExtractor="simpleValue" dataSource="/ContentTrends/Aggregated/COPY" dataTrigger="/ContentTrends/Aggregated/COPY" />
+            <RecordValue key="VIEW" dataExtractor="simpleValue" dataSource="/ContentTrends/Aggregated/VIEW" dataTrigger="/ContentTrends/Aggregated/VIEW" />
+            <RecordValue key="DOWNLOAD" dataExtractor="simpleValue" dataSource="/ContentTrends/Aggregated/DOWNLOAD" dataTrigger="/ContentTrends/Aggregated/DOWNLOAD" />
+        </AuditPath>
+
+        <AuditPath key="Historic">
+            <RecordValue key="nodeRef" dataExtractor="simpleValue" dataSource="/ContentTrends/Historic/nodeRef" dataTrigger="/ContentTrends/Historic/nodeRef" />
+
+            <RecordValue key="totalScore" dataExtractor="simpleValue" dataSource="/ContentTrends/Historic/totalScore" dataTrigger="/ContentTrends/Historic/totalScore" />
+            <RecordValue key="viewScore" dataExtractor="simpleValue" dataSource="/ContentTrends/Historic/viewScore" dataTrigger="/ContentTrends/Historic/viewScore" />
+            <RecordValue key="tagScore" dataExtractor="simpleValue" dataSource="/ContentTrends/Historic/tagScore" dataTrigger="/ContentTrends/Historic/tagScore" />
+            <RecordValue key="commentScore" dataExtractor="simpleValue" dataSource="/ContentTrends/Historic/commentScore"
+                dataTrigger="/ContentTrends/Historic/commentScore" />
+            <RecordValue key="ratingScore" dataExtractor="simpleValue" dataSource="/ContentTrends/Historic/ratingScore" dataTrigger="/ContentTrends/Historic/ratingScore" />
+            <RecordValue key="editScore" dataExtractor="simpleValue" dataSource="/ContentTrends/Historic/editScore" dataTrigger="/ContentTrends/Historic/editScore" />
+        </AuditPath>
+    </Application>
+</Audit>

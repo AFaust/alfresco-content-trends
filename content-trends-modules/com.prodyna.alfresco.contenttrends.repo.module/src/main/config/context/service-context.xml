@@ -1,0 +1,68 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE beans PUBLIC '-//SPRING//DTD BEAN//EN' 'http://www.springframework.org/dtd/spring-beans.dtd'>
+
+<beans>
+
+    <bean id="ContentTrendsService" class="org.springframework.aop.framework.ProxyFactoryBean">
+        <property name="proxyInterfaces">
+            <list>
+                <value>com.prodyna.alfresco.contenttrends.repo.module.service.ContentTrendsService</value>
+            </list>
+        </property>
+        <!-- Lazy init to avoid circular dependencies -->
+        <property name="targetSource">
+            <bean class="org.alfresco.config.NonBlockingLazyInitTargetSource">
+                <property name="targetBeanName">
+                    <idref local="contentTrendsService" />
+                </property>
+            </bean>
+        </property>
+        <property name="interceptorNames">
+            <list>
+                <idref local="ContentTrendsService_transaction" />
+                <idref bean="AuditMethodInterceptor" />
+                <idref bean="exceptionTranslator" />
+                <idref local="ContentTrendsService_security" />
+            </list>
+        </property>
+    </bean>
+
+    <bean id="ContentTrendsService_transaction" class="org.alfresco.repo.transaction.RetryingTransactionInterceptor">
+        <property name="transactionService" ref="TransactionService" />
+        <property name="transactionManager" ref="transactionManager" />
+        <property name="transactionAttributes">
+            <props>
+                <prop key="*">${server.transaction.mode.readOnly}</prop>
+            </props>
+        </property>
+    </bean>
+
+    <bean id="ContentTrendsService_security" class="org.alfresco.repo.security.permissions.impl.acegi.MethodSecurityInterceptor">
+        <property name="authenticationManager">
+            <ref bean="authenticationManager" />
+        </property>
+        <property name="accessDecisionManager">
+            <ref bean="accessDecisionManager" />
+        </property>
+        <property name="afterInvocationManager">
+            <ref bean="afterInvocationManager" />
+        </property>
+        <property name="objectDefinitionSource">
+            <value>
+                com.prodyna.alfresco.contenttrends.repo.module.service.ContentTrendsService.getScoreHistory=ACL_NODE.0.sys:base.ReadProperties
+                com.prodyna.alfresco.contenttrends.repo.module.service.ContentTrendsService.*=ACL_DENY
+            </value>
+        </property>
+    </bean>
+
+    <bean id="contentTrendsService" class="com.prodyna.alfresco.contenttrends.repo.module.service.ContentTrendsServiceImpl">
+        <!-- This service is secured based on permissions, so we can use private auditService reference -->
+        <property name="auditService" ref="auditService" />
+        <property name="defaultNumberOfDaysBack" value="${contentTrends.scoreHistory.defaultNumberOfDaysBack}" />
+    </bean>
+    
+    <bean id="${project.artifactId}-contentTrendsScript" parent="baseJavaScriptExtension" class="com.prodyna.alfresco.contenttrends.repo.module.jscript.ContentTrends">
+        <property name="extensionName" value="contentTrends" />
+        <property name="contentTrendsService" ref="ContentTrendsService" />
+    </bean>
+</beans>

@@ -1,0 +1,13 @@
+span.item.content-trends-score span.negative {
+	color: red;
+}
+
+span.item.content-trends-score span.positive {
+    color: green;
+}
+
+span.item.content-trends-score {
+	padding-left: 20px;
+	background-repeat: no-repeat;
+	background-position: 0px 2px;
+}

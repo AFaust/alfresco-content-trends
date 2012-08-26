@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<alfresco-config>
+
+    <config evaluator="string-compare" condition="DocumentLibrary">
+
+        <metadata-templates>
+            <template id="default">
+                <!-- TODO: How to selectively hide the date line in simple-trends without affecting the document list -->
+                <!-- <line index="10" id="date" view="simple-trends">{date}</line> -->
+                <line index="20" id="trends" view="simple-trends">{ct_totalScore}{ct_viewScore}{ct_editScore}{ct_tagScore}{ct_ratingScore}{ct_commentScore}</line>
+            </template>
+        </metadata-templates>
+
+    </config>
+
+    <config evaluator="string-compare" condition="DocLibActions">
+
+        <actions>
+            <action id="content-trends-node-trend" type="javascript" label="actions.content-trends.node-trend">
+                <param name="function">onActionNodeScoreHistory</param>
+            </action>
+            <action id="content-trends-compare-trend" type="javascript" label="actions.content-trends.compare-trend">
+                <param name="function">onActionNodeScoreHistoryComparison</param>
+            </action>
+        </actions>
+
+        <actionGroups>
+            <actionGroup id="content-trends-browse">
+                <action index="100" id="content-trends-node-trend" />
+                <action index="110" id="content-trends-compare-trend" />
+            </actionGroup>
+        </actionGroups>
+
+    </config>
+</alfresco-config>

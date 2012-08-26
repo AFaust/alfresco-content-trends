@@ -1,0 +1,6 @@
+<webscript>
+    <shortname>Content Trends DocList</shortname>
+    <description>Web Tier Content Trends List Component - data webscript endpoint</description>
+    <url>/components/dashlets/content-trends/data/{webscript}/{params}</url>
+    <format default="json">argument</format>
+</webscript>

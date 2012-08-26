@@ -1,0 +1,5 @@
+<webscript>
+    <shortname>trend-dialog</shortname>
+    <description>Trends display for node(s)</description>
+    <url>/modules/content-trends/trend-dialog</url>
+</webscript>

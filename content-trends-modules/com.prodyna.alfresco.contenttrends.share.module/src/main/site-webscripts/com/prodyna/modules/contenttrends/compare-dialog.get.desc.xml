@@ -1,0 +1,5 @@
+<webscript>
+    <shortname>compare-dialog</shortname>
+    <description>Trend Comparison display for node(s)</description>
+    <url>/modules/content-trends/compare-dialog</url>
+</webscript>

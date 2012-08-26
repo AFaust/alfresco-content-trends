@@ -1,0 +1,35 @@
+.content-trends .doclist .documents .filename span.title {
+	background: none;
+}
+
+.content-trends .doclist .documents .filename {
+	/** Same size as in my-sites */
+	font-size: 108%;
+}
+
+.content-trends .doclist .documents,
+.content-trends .doclist .doclist-bar
+	{
+	margin: 0;
+}
+
+.content-trends .doclist div.simple-trends a.action-link span,
+.content-trends .doclist div.simple-trends a.simple-link span
+{
+	display: none;
+}
+
+.content-trends .doclist div.simple-trends div
+{
+	float: left;
+}
+
+.content-trends .doclist .doclist-bar-bottom
+{
+	display: block;
+}
+
+.content-trends .doclist .doclist-bar .paginator
+{
+	width: 100%;
+}

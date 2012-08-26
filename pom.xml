@@ -1,0 +1,134 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.prodyna.alfresco</groupId>
+    <artifactId>content-trends</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>content-trends-modules</module>
+        <module>content-trends-build</module>
+    </modules>
+
+    <properties>
+
+        <alfresco.version>4.0.2</alfresco.version>
+
+    </properties>
+
+    <repositories>
+
+        <!-- Repositories fully managed via profiles -->
+
+    </repositories>
+
+    <pluginRepositories>
+
+        <!-- Repositories fully managed via profiles -->
+
+    </pluginRepositories>
+
+    <build>
+
+        <pluginManagement>
+
+            <plugins>
+                <plugin>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>2.5.1</version>
+                    <configuration>
+                        <source>1.6</source>
+                        <target>1.6</target>
+                    </configuration>
+                </plugin>
+
+                <plugin>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>2.1.2</version>
+                    <executions>
+                        <execution>
+                            <id>attach-sources</id>
+                            <goals>
+                                <goal>jar-no-fork</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+
+        </pluginManagement>
+
+    </build>
+
+    <profiles>
+
+        <profile>
+            <id>publicRepositories</id>
+
+            <repositories>
+
+                <repository>
+                    <id>alfresco-artifacts-public</id>
+                    <url>https://artifacts.alfresco.com/nexus/content/groups/public</url>
+                </repository>
+
+                <repository>
+                    <id>mandubian-mvn</id>
+                    <url>http://mandubian-mvn.googlecode.com/svn/trunk/mandubian-mvn/repository</url>
+                </repository>
+
+                <repository>
+                    <id>alfresco-artifacts-public-snapshots</id>
+                    <url>https://artifacts.alfresco.com/nexus/content/groups/public-snapshots</url>
+                    <snapshots>
+                        <enabled>true</enabled>
+                        <updatePolicy>daily</updatePolicy>
+                    </snapshots>
+                </repository>
+
+            </repositories>
+
+            <pluginRepositories>
+
+                <pluginRepository>
+                    <id>alfresco-artifacts-public</id>
+                    <url>https://artifacts.alfresco.com/nexus/content/groups/public</url>
+                </pluginRepository>
+
+                <pluginRepository>
+                    <id>alfresco-artifacts-public-snapshots</id>
+                    <url>https://artifacts.alfresco.com/nexus/content/groups/public-snapshots</url>
+                    <snapshots>
+                        <enabled>true</enabled>
+                        <updatePolicy>daily</updatePolicy>
+                    </snapshots>
+                </pluginRepository>
+
+            </pluginRepositories>
+        </profile>
+
+        <profile>
+            <id>privateAlfrescoRepository</id>
+
+            <repositories>
+
+                <repository>
+                    <id>alfresco-artifacts-private</id>
+                    <url>https://artifacts.alfresco.com/nexus/content/groups/private</url>
+                </repository>
+
+            </repositories>
+
+            <pluginRepositories>
+
+                <pluginRepository>
+                    <id>alfresco-artifacts-private</id>
+                    <url>https://artifacts.alfresco.com/nexus/content/groups/private</url>
+                </pluginRepository>
+
+            </pluginRepositories>
+        </profile>
+
+    </profiles>
+</project>
