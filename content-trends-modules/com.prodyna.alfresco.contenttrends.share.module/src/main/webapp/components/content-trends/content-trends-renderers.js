@@ -17,7 +17,14 @@
     {
         var urlContext = Alfresco.constants.URL_RESCONTEXT + "components/content-trends/icons/", iconStyle = 'style="background-image:url('
                 + urlContext + '{icon}-16.png)"', valueMarkup = '<span class="item content-trends-score" title="{title}" {iconStyle}><span><span title="{valueTitle}">{value}</span> / <span title="{changeTitle}" class="{changeType}">{change} %</span></span></span>', value = record.jsNode.properties[propertyName], change = record.jsNode.properties[propertyName
-                + "Change"], obj =
+                + "Change"], obj = null;
+
+        if (change == null || change == "")
+        {
+            change = 0;
+        }
+
+        obj =
         {
             iconStyle : iconStyle,
             value : value,

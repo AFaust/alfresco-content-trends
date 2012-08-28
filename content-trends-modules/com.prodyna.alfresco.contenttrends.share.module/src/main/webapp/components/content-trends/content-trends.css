@@ -9,8 +9,29 @@
 
 .content-trends .doclist .documents,
 .content-trends .doclist .doclist-bar
-	{
+{
 	margin: 0;
+}
+
+.content-trends .doclist .documents
+{
+	clear: both;
+}
+
+.content-trends .doclist .doclist-bar
+{
+	width: 100%;
+	float: left;
+}
+
+.content-trends .doclist .doclist-bar-bottom
+{
+    display: block;
+}
+
+.content-trends .doclist .doclist-bar .sort-field
+{
+	float:right;
 }
 
 .content-trends .doclist div.simple-trends a.action-link span,
@@ -22,14 +43,4 @@
 .content-trends .doclist div.simple-trends div
 {
 	float: left;
-}
-
-.content-trends .doclist .doclist-bar-bottom
-{
-	display: block;
-}
-
-.content-trends .doclist .doclist-bar .paginator
-{
-	width: 100%;
 }

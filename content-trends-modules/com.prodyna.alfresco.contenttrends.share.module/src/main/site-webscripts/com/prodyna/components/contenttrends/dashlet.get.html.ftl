@@ -59,32 +59,28 @@
 
 <div class="dashlet content-trends">
     <div class="title">${msg("header")}</div>
-    <div id="${id}-body" class="body doclist no-check-bg" <#if args.height??>style="height: ${args.height}px;"</#if>>
+    <div id="${id}-body" class="body doclist no-check-bg" style="height: ${args.height!"50"}px;">
         <div id="${id}-main-template" class="hidden">
             <div>
             </div>
         </div>
         
-        <div id="${id}-doclistBar" class="yui-gc doclist-bar flat-button no-check-bg">
-            <div class="yui-u first">
-                <div id="${id}-paginator" class="paginator"></div>
-            </div>
-            <div class="yui-u align-right">
-                <div class="sort-field">
-                    <span id="${id}-sortField-button" class="yui-button yui-push-button">
-                        <span class="first-child">
-                            <button name="content-trends-sortField-button"></button>
-                        </span>
+        <div id="${id}-doclistBar" class="doclist-bar flat-button no-check-bg">
+            <div id="${id}-paginator" class="paginator"></div>
+            <div class="sort-field">
+                <span id="${id}-sortField-button" class="yui-button yui-push-button">
+                    <span class="first-child">
+                        <button name="content-trends-sortField-button"></button>
                     </span>
-                    <span class="separator">&nbsp;</span>
-                    <select id="${id}-sortField-menu">
-                    <#list sortOptions as sort>
-                        <option value="${(sort.value!"")?html}" <#if sort.direction??>title="${sort.direction?string}"</#if>>${msg(sort.label)}</option>
-                    </#list>
-                    </select>
-                </div>
-                <#-- TODO: provide sort direction option? -->
+                </span>
+                <span class="separator">&nbsp;</span>
+                <select id="${id}-sortField-menu">
+                <#list sortOptions as sort>
+                    <option value="${(sort.value!"")?html}" <#if sort.direction??>title="${sort.direction?string}"</#if>>${msg(sort.label)}</option>
+                </#list>
+                </select>
             </div>
+            <#-- TODO: provide sort direction option? -->
         </div>
         
         <div id="${id}-documents" class="documents"></div>

@@ -77,5 +77,35 @@
     </bean>
 
     <bean id="${project.artifactId}-diminishingReturnsScorer" class="com.prodyna.alfresco.contenttrends.repo.module.scoring.DiminishingReturnsScoringStrategy">
+        <!-- Score modifiers -->
+        <property name="viewModifier" value="${contentTrends.diminishingReturnsScorer.viewModifier}" />
+        <property name="downloadModifier" value="${contentTrends.diminishingReturnsScorer.downloadModifier}" />
+        <property name="editModifier" value="${contentTrends.diminishingReturnsScorer.editModifier}" />
+        <property name="editContentModifier" value="${contentTrends.diminishingReturnsScorer.editContentModifier}" />
+        <property name="checkoutModifier" value="${contentTrends.diminishingReturnsScorer.checkoutModifier}" />
+        <property name="checkinModifier" value="${contentTrends.diminishingReturnsScorer.checkinModifier}" />
+        <property name="ratingModifier" value="${contentTrends.diminishingReturnsScorer.ratingModifier}" />
+        <property name="commentModifier" value="${contentTrends.diminishingReturnsScorer.commentModifier}" />
+        <property name="tagModifier" value="${contentTrends.diminishingReturnsScorer.tagModifier}" />
+        
+        <!-- Global penalty parameters -->
+        <property name="globalViewLimitFor80Penalty" value="${contentTrends.diminishingReturnsScorer.globalViewLimitFor80Penalty}" />
+        <property name="globalDownloadLimitFor80Penalty" value="${contentTrends.diminishingReturnsScorer.globalDownloadLimitFor80Penalty}" />
+        <property name="globalEditLimitFor80Penalty" value="${contentTrends.diminishingReturnsScorer.globalEditLimitFor80Penalty}" />
+        <property name="globalEditContentLimitFor80Penalty" value="${contentTrends.diminishingReturnsScorer.globalEditContentLimitFor80Penalty}" />
+        <property name="globalCociLimitFor80Penalty" value="${contentTrends.diminishingReturnsScorer.globalCociLimitFor80Penalty}" />
+        <property name="globalRatingLimitFor80Penalty" value="${contentTrends.diminishingReturnsScorer.globalRatingLimitFor80Penalty}" />
+        <property name="globalCommentLimitFor80Penalty" value="${contentTrends.diminishingReturnsScorer.globalCommentLimitFor80Penalty}" />
+        <property name="globalTagLimitFor80Penalty" value="${contentTrends.diminishingReturnsScorer.globalTagLimitFor80Penalty}" />
+        
+        <!-- Global penalty parameters -->
+        <property name="userViewLimitFor80Penalty" value="${contentTrends.diminishingReturnsScorer.userViewLimitFor80Penalty}" />
+        <property name="userDownloadLimitFor80Penalty" value="${contentTrends.diminishingReturnsScorer.userDownloadLimitFor80Penalty}" />
+        <property name="userEditLimitFor80Penalty" value="${contentTrends.diminishingReturnsScorer.userEditLimitFor80Penalty}" />
+        <property name="userEditContentLimitFor80Penalty" value="${contentTrends.diminishingReturnsScorer.userEditContentLimitFor80Penalty}" />
+        <property name="userCociLimitFor80Penalty" value="${contentTrends.diminishingReturnsScorer.userCociLimitFor80Penalty}" />
+        <property name="userRatingLimitFor80Penalty" value="${contentTrends.diminishingReturnsScorer.userRatingLimitFor80Penalty}" />
+        <property name="userCommentLimitFor80Penalty" value="${contentTrends.diminishingReturnsScorer.userCommentLimitFor80Penalty}" />
+        <property name="userTagLimitFor80Penalty" value="${contentTrends.diminishingReturnsScorer.userTagLimitFor80Penalty}" />
     </bean>
 </beans>
