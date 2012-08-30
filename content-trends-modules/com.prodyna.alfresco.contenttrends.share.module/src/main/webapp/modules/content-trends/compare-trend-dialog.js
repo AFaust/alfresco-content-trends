@@ -238,7 +238,7 @@ if (PRODYNA === undefined || !PRODYNA)
 
                         _mergeData : function()
                         {
-                            var fullDataSet = [], allDataProcessed = false, nodeIndices = {}, nodeDataIndices = {}, i = 0, ii = 0;
+                            var fullDataSet = [], allDataProcessed = false, nodeIndices = {}, nodeDataIndices = {}, i = 0, ii = 0, lastEntry = null;
 
                             for (ii = this.trendData.length; i < ii; i++)
                             {
@@ -276,6 +276,17 @@ if (PRODYNA === undefined || !PRODYNA)
                                 if (!allDataProcessed)
                                 {
                                     var j = 0, jj = nextDataNodes.length, entry = {};
+                                    
+                                    // clone last entry, in case one of the nodes is missing a data point
+                                    if (lastEntry != null)
+                                    {
+                                        var property;
+                                        for (property in lastEntry)
+                                        {
+                                            entry[property] = lastEntry[property];
+                                        }
+                                    }
+                                    
                                     entry.date = date;
 
                                     for (; j < jj; j++)
@@ -293,6 +304,7 @@ if (PRODYNA === undefined || !PRODYNA)
                                     }
 
                                     fullDataSet.push(entry);
+                                    lastEntry = entry;
                                 }
                             }
 

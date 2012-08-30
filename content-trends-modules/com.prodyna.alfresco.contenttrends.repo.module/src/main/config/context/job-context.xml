@@ -60,6 +60,7 @@
         <property name="scoringStrategy" ref="${project.artifactId}-diminishingReturnsScorer" />
         <property name="storeToProcess" value="${contentTrends.scoring.storeRef}" />
         <property name="scoringWindowSizeInDays" value="${contentTrends.scoring.windowSizeInDays}" />
+        <property name="scoringIntervalInMins" value="${contentTrends.scoreUpdate.repeatIntervalMins}" />
     </bean>
 
     <bean id="${project.artifactId}-linearScorer" class="com.prodyna.alfresco.contenttrends.repo.module.scoring.LinearNodeEventScoringStrategy">

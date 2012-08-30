@@ -17,19 +17,15 @@
     {
         var urlContext = Alfresco.constants.URL_RESCONTEXT + "components/content-trends/icons/", iconStyle = 'style="background-image:url('
                 + urlContext + '{icon}-16.png)"', valueMarkup = '<span class="item content-trends-score" title="{title}" {iconStyle}><span><span title="{valueTitle}">{value}</span> / <span title="{changeTitle}" class="{changeType}">{change} %</span></span></span>', value = record.jsNode.properties[propertyName], change = record.jsNode.properties[propertyName
-                + "Change"], obj = null;
-
-        if (change == null || change == "")
-        {
-            change = 0;
-        }
+                + "Change"], obj = null, changeVal = (change == null || change == "") ? "-" : change, changeType = (!(change == null || change == "") && change) < 0 ? "negative"
+                : ((change == null || change == "" || change == 0) ? "neutral" : "positive");
 
         obj =
         {
             iconStyle : iconStyle,
             value : value,
-            change : change,
-            changeType : change < 0 ? "negative" : (change == 0 ? "neutral" : "positive"),
+            change : changeVal,
+            changeType : changeType,
             icon : propertyName,
             title : $html(this.msg("label.content-trends." + propertyName)),
             valueTitle : $html(this.msg("label.content-trends.value")),

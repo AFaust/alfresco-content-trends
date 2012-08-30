@@ -26,15 +26,17 @@ import org.alfresco.service.cmr.search.ResultSet;
 import org.alfresco.service.cmr.search.ResultSetRow;
 import org.alfresco.service.cmr.search.SearchParameters;
 import org.alfresco.service.cmr.search.SearchService;
-import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
+import org.alfresco.util.EqualsHelper;
 import org.alfresco.util.ISO8601DateFormat;
+import org.alfresco.util.Pair;
 import org.alfresco.util.PropertyCheck;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 
 import com.prodyna.alfresco.contenttrends.repo.module.audit.ContentTrendsEventType;
+import com.prodyna.alfresco.contenttrends.repo.module.model.ContentTrendsModel;
 import com.prodyna.alfresco.contenttrends.repo.module.service.ContentTrendsService;
 import com.prodyna.alfresco.contenttrends.repo.module.service.NodeScoreType;
 
@@ -47,8 +49,15 @@ public class ContentTrendsScoreUpdater extends AbstractContentTrendsProcessor im
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ContentTrendsScoreUpdateJob.class);
 
-    // TODO: custom namespace
-    protected static final QName LOCK_QNAME = QName.createQName(NamespaceService.SYSTEM_MODEL_1_0_URI, "ContentTrendsScoreUpdater");
+    /*
+     * 24 hours +- 12 hours is our lookup frame for historic scores, so max age needs to be 36 hours - scoring interval (can only be
+     * determined at instance level)
+     */
+    protected static final long BACKSTEP_FOR_HISTORIC_SCORE = 24l * 60 * 60 * 1000;
+    protected static final long HISTORIC_LOOKUP_WINDOW = 12l * 60 * 60 * 1000;
+    protected static final long MAX_AGE_LAST_HISTORIC_SCORE = BACKSTEP_FOR_HISTORIC_SCORE + HISTORIC_LOOKUP_WINDOW;
+
+    protected static final QName LOCK_QNAME = QName.createQName(ContentTrendsModel.NAMESPACE_URI, "ContentTrendsScoreUpdater");
     protected static final long LOCK_TTL = 1000 * 30;
 
     protected static final String AGGREGATED_CONTENT_TRENDS_ROOT_PATH = "/" + ContentTrendsService.CONTENT_TRENDS_AUDIT_APPLICATION
@@ -73,6 +82,8 @@ public class ContentTrendsScoreUpdater extends AbstractContentTrendsProcessor im
 
     protected ContentTrendsConsolidator consolidator;
 
+    protected int scoringIntervalInMins = (int) (HISTORIC_LOOKUP_WINDOW / (60 * 1000));
+
     /**
      * 
      * {@inheritDoc}
@@ -87,6 +98,18 @@ public class ContentTrendsScoreUpdater extends AbstractContentTrendsProcessor im
         PropertyCheck.mandatory(this, "behaviourFilter", this.behaviourFilter);
         PropertyCheck.mandatory(this, "scoringStrategy", this.scoringStrategy);
         PropertyCheck.mandatory(this, "storeToProcess", this.storeToProcess);
+    }
+
+    /**
+     * @param scoringIntervalInMins
+     *            the scoringIntervalInMins to set
+     */
+    public void setScoringIntervalInMins(int scoringIntervalInMins)
+    {
+        if (scoringIntervalInMins >= 0)
+        {
+            this.scoringIntervalInMins = scoringIntervalInMins;
+        }
     }
 
     /**
@@ -174,7 +197,7 @@ public class ContentTrendsScoreUpdater extends AbstractContentTrendsProcessor im
     }
 
     /**
-     * Consolidate all audit entries in the ContentTrendsBase application by user and affected node
+     * Score all content elements based on aggregated events in the ContentTrends audit application
      */
     @Override
     protected void doProcess()
@@ -202,17 +225,31 @@ public class ContentTrendsScoreUpdater extends AbstractContentTrendsProcessor im
         allScores.addAll(newScores);
 
         final long date = System.currentTimeMillis();
+        final long maxAgeHistoricScore = MAX_AGE_LAST_HISTORIC_SCORE - (this.scoringIntervalInMins * 60l * 1000);
 
-        // TODO: parallelize
+        // TODO: two stage parallel execution
+        // 1st stage: update scored content
+        // 2nd stage: score content with events in audit logs (filter entries from 1st stage for efficiency)
+
         for (final NodeScores nodeScore : allScores)
         {
+            final Pair<NodeScores, Long> historicScoreAndDate = findHistoricScore(nodeScore.getNodeRef(), date);
+
             final NodeRef nodeRef = nodeScore.getNodeRef();
-            saveScore(nodeRef, date, nodeScore);
-            saveHistoricScore(nodeRef, nodeScore);
+            final boolean scoresChanged = saveScore(nodeRef, nodeScore, historicScoreAndDate != null ? historicScoreAndDate.getFirst()
+                    : null);
+
+            // only save historic score if there has been a change or we did not record scores for a while
+            final long timeSinceHistoricScore = historicScoreAndDate != null ? date - historicScoreAndDate.getSecond() : -1;
+            if (historicScoreAndDate == null || scoresChanged || timeSinceHistoricScore > maxAgeHistoricScore)
+            {
+                // should we add a dummy "old" historic score entry in case of a change after skipping updates for a while?
+                saveHistoricScore(nodeRef, nodeScore);
+            }
         }
     }
 
-    protected void saveScore(final NodeRef nodeRef, final long now, final NodeScores nodeScore)
+    protected boolean saveScore(final NodeRef nodeRef, final NodeScores nodeScore, final NodeScores historicScore)
     {
         final Map<QName, Serializable> properties = new HashMap<QName, Serializable>();
         for (final NodeScoreType scoreType : NodeScoreType.values())
@@ -221,57 +258,59 @@ public class ContentTrendsScoreUpdater extends AbstractContentTrendsProcessor im
             properties.put(scoreType.getScoreProperty(), (int) Math.round(score));
         }
 
-        final Map<QName, Serializable> deltas = calculateScoreDeltas(nodeRef, now, nodeScore);
-        properties.putAll(deltas);
+        final Map<QName, Serializable> currentProperties = this.nodeService.getProperties(nodeRef);
 
-        this.behaviourFilter.disableBehaviour(nodeRef, ContentModel.ASPECT_AUDITABLE);
-        this.behaviourFilter.disableBehaviour(nodeRef, ContentModel.ASPECT_VERSIONABLE);
-        try
+        boolean scoresChanged = false;
+        for (final QName prop : properties.keySet())
         {
-            this.nodeService.addProperties(nodeRef, properties);
+            final Serializable before = currentProperties.get(prop);
+            final Serializable after = properties.get(prop);
+
+            scoresChanged = scoresChanged || !EqualsHelper.nullSafeEquals(before, after);
         }
-        finally
+
+        if (!scoresChanged)
         {
-            this.behaviourFilter.enableBehaviour(nodeRef, ContentModel.ASPECT_AUDITABLE);
-            this.behaviourFilter.enableBehaviour(nodeRef, ContentModel.ASPECT_VERSIONABLE);
+            properties.clear();
         }
+
+        final Map<QName, Serializable> deltas = calculateScoreDeltas(nodeRef, nodeScore, historicScore);
+        boolean deltasChanged = false;
+        for (final QName prop : deltas.keySet())
+        {
+            final Serializable before = currentProperties.get(prop);
+            final Serializable after = deltas.get(prop);
+
+            deltasChanged = deltasChanged || !EqualsHelper.nullSafeEquals(before, after);
+        }
+
+        if (deltasChanged)
+        {
+            properties.putAll(deltas);
+        }
+
+        if (scoresChanged || deltasChanged)
+        {
+            this.behaviourFilter.disableBehaviour(nodeRef, ContentModel.ASPECT_AUDITABLE);
+            this.behaviourFilter.disableBehaviour(nodeRef, ContentModel.ASPECT_VERSIONABLE);
+            try
+            {
+                this.nodeService.addProperties(nodeRef, properties);
+            }
+            finally
+            {
+                this.behaviourFilter.enableBehaviour(nodeRef, ContentModel.ASPECT_AUDITABLE);
+                this.behaviourFilter.enableBehaviour(nodeRef, ContentModel.ASPECT_VERSIONABLE);
+            }
+        }
+
+        return scoresChanged;
     }
 
-    protected Map<QName, Serializable> calculateScoreDeltas(final NodeRef nodeRef, final long now, final NodeScores nodeScore)
+    protected Map<QName, Serializable> calculateScoreDeltas(final NodeRef nodeRef, final NodeScores nodeScore,
+            final NodeScores historicScore)
     {
         final Map<QName, Serializable> deltas = new HashMap<QName, Serializable>();
-
-        NodeScores historicScore = null;
-        int epsilonMinutes = 15;
-        final int epsilonIncrease = 30;
-        final long historicBaseTime;
-        {
-            final Calendar cal = Calendar.getInstance();
-            cal.setTimeInMillis(now);
-            cal.add(Calendar.DAY_OF_YEAR, -1);
-            historicBaseTime = cal.getTimeInMillis();
-        }
-
-        // look for historic score in time frame one day ago +- 12 hours
-        final ClosestHistoricScoreFinder finder = new ClosestHistoricScoreFinder(nodeRef, historicBaseTime);
-        while (historicScore == null && epsilonMinutes < (12 * 60))
-        {
-            final long timeFrom = historicBaseTime - (epsilonMinutes * 60 * 1000L);
-            final long timeTo = historicBaseTime + (epsilonMinutes * 60 * 1000L);
-
-            final AuditQueryParameters queryParams = new AuditQueryParameters();
-            queryParams.setFromTime(timeFrom);
-            queryParams.setToTime(timeTo);
-            queryParams.setForward(true);
-            queryParams.addSearchKey(ContentTrendsService.HISTORIC_NODE_REF_PATH, nodeRef);
-            queryParams.setApplicationName(ContentTrendsService.CONTENT_TRENDS_AUDIT_APPLICATION);
-
-            this.auditService.auditQuery(finder, queryParams, Integer.MAX_VALUE);
-
-            historicScore = finder.getNodeScore();
-
-            epsilonMinutes += epsilonIncrease;
-        }
 
         if (historicScore != null)
         {
@@ -279,7 +318,15 @@ public class ContentTrendsScoreUpdater extends AbstractContentTrendsProcessor im
             {
                 final double absoluteChange = nodeScore.getScore(scoreType) - historicScore.getScore(scoreType);
                 final double relativeChange = 100 * absoluteChange / historicScore.getScore(scoreType);
-                deltas.put(scoreType.getScoreChangeProperty(), (int) Math.round(relativeChange));
+
+                if (Double.isInfinite(relativeChange) || Double.isNaN(relativeChange))
+                {
+                    deltas.put(scoreType.getScoreChangeProperty(), null);
+                }
+                else
+                {
+                    deltas.put(scoreType.getScoreChangeProperty(), (int) Math.round(relativeChange));
+                }
             }
         }
         else
@@ -293,9 +340,46 @@ public class ContentTrendsScoreUpdater extends AbstractContentTrendsProcessor im
         return deltas;
     }
 
+    private Pair<NodeScores, Long> findHistoricScore(final NodeRef nodeRef, final long now)
+    {
+        NodeScores historicScore = null;
+        final long historicBaseTime = now - BACKSTEP_FOR_HISTORIC_SCORE;
+
+        // look for historic score in time frame one day ago +- 12 hours
+        final ClosestHistoricScoreFinder finder = new ClosestHistoricScoreFinder(nodeRef, historicBaseTime);
+        for (int percentLookupWindow = 10; historicScore == null && percentLookupWindow <= 100; percentLookupWindow += 10)
+        {
+            final long lookupWindow = (percentLookupWindow * HISTORIC_LOOKUP_WINDOW) / 100;
+            final long timeFrom = historicBaseTime - lookupWindow;
+            final long timeTo = historicBaseTime + lookupWindow;
+
+            final AuditQueryParameters queryParams = new AuditQueryParameters();
+            queryParams.setFromTime(timeFrom);
+            queryParams.setToTime(timeTo);
+            queryParams.setForward(true);
+            queryParams.addSearchKey(ContentTrendsService.HISTORIC_NODE_REF_PATH, nodeRef);
+            queryParams.setApplicationName(ContentTrendsService.CONTENT_TRENDS_AUDIT_APPLICATION);
+
+            this.auditService.auditQuery(finder, queryParams, Integer.MAX_VALUE);
+
+            historicScore = finder.getNodeScore();
+        }
+
+        final Pair<NodeScores, Long> scoreAndDate;
+        if (historicScore != null)
+        {
+            scoreAndDate = new Pair<NodeScores, Long>(historicScore, finder.getNodeScoreDateMillis());
+        }
+        else
+        {
+            scoreAndDate = null;
+        }
+
+        return scoreAndDate;
+    }
+
     protected void saveHistoricScore(final NodeRef nodeRef, final NodeScores nodeScore)
     {
-        // TODO: only create audit entry if scores have changed or more than -+ 12 hours from last historic entry
         final Map<String, Serializable> auditValues = new HashMap<String, Serializable>();
         auditValues.put("nodeRef", nodeRef);
 
@@ -687,6 +771,11 @@ public class ContentTrendsScoreUpdater extends AbstractContentTrendsProcessor im
             return this.nodeScore;
         }
 
+        protected long getNodeScoreDateMillis()
+        {
+            return this.nodeScoreDate;
+        }
+
         /**
          * 
          * {@inheritDoc}
@@ -709,6 +798,7 @@ public class ContentTrendsScoreUpdater extends AbstractContentTrendsProcessor im
             if (this.nodeScoreDate == 0 || (Math.abs(this.baseDate - time) < Math.abs(this.baseDate - this.nodeScoreDate)))
             {
                 this.nodeScore = new NodeScores(this.nodeRef, Collections.<Long> emptySet());
+                this.nodeScoreDate = time;
 
                 for (final NodeScoreType scoreType : NodeScoreType.values())
                 {

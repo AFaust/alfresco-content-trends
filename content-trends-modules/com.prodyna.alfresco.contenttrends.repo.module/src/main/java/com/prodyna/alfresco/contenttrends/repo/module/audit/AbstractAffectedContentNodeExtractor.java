@@ -51,13 +51,14 @@ public abstract class AbstractAffectedContentNodeExtractor extends AbstractDataE
 
                 while (currentNode != null)
                 {
-                    if (this.nodeService.hasAspect(currentNode, RenditionModel.ASPECT_RENDITION))
+                    final QName nodeType = this.nodeService.getType(currentNode);
+
+                    if (this.nodeService.hasAspect(currentNode, RenditionModel.ASPECT_RENDITION)
+                            || this.dictionaryService.isSubClass(nodeType, ContentModel.TYPE_THUMBNAIL))
                     {
-                        // we don't consider renditions "affected"
+                        // we don't consider renditions / thumbnails "affected"
                         break;
                     }
-
-                    final QName nodeType = this.nodeService.getType(currentNode);
 
                     if (this.dictionaryService.isSubClass(nodeType, ContentModel.TYPE_CONTENT))
                     {

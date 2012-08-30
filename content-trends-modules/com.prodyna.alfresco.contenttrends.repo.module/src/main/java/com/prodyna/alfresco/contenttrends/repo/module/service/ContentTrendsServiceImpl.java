@@ -105,6 +105,20 @@ public class ContentTrendsServiceImpl implements ContentTrendsService, Initializ
 
         this.auditService.auditQuery(collector, params, -1);
         final List<DatedNodeScores> scoreHistory = collector.getNodeScores();
+
+        // add a history for current score state
+        final DatedNodeScores currentScores = new DatedNodeScores(nodeRef, new Date());
+        if (!scoreHistory.isEmpty())
+        {
+            // clone the last score state as the current data point state
+            final DatedNodeScores lastNodeScores = scoreHistory.get(scoreHistory.size() - 1);
+            for (final NodeScoreType scoreType : NodeScoreType.values())
+            {
+                currentScores.setScore(scoreType, lastNodeScores.getScore(scoreType));
+            }
+        }
+        scoreHistory.add(currentScores);
+
         return scoreHistory;
     }
 
