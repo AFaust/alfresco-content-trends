@@ -233,15 +233,16 @@ public class ContentTrendsScoreUpdater extends AbstractContentTrendsProcessor im
 
         for (final NodeScores nodeScore : allScores)
         {
-            final Pair<NodeScores, Long> historicScoreAndDate = findHistoricScore(nodeScore.getNodeRef(), date);
+            final Pair<NodeScores, Long> historicScoreWithBackstep = findHistoricScoreWithBackstep(nodeScore.getNodeRef(), date);
+            final Pair<NodeScores, Long> latestHistoricScore = findLatestHistoricScore(nodeScore.getNodeRef());
 
             final NodeRef nodeRef = nodeScore.getNodeRef();
-            final boolean scoresChanged = saveScore(nodeRef, nodeScore, historicScoreAndDate != null ? historicScoreAndDate.getFirst()
+            final boolean scoresChanged = saveScore(nodeRef, nodeScore, historicScoreWithBackstep != null ? historicScoreWithBackstep.getFirst()
                     : null);
 
             // only save historic score if there has been a change or we did not record scores for a while
-            final long timeSinceHistoricScore = historicScoreAndDate != null ? date - historicScoreAndDate.getSecond() : -1;
-            if (historicScoreAndDate == null || scoresChanged || timeSinceHistoricScore > maxAgeHistoricScore)
+            final long timeSinceLatestHistoricScore = latestHistoricScore != null ? date - latestHistoricScore.getSecond() : -1;
+            if (latestHistoricScore == null || scoresChanged || timeSinceLatestHistoricScore > maxAgeHistoricScore)
             {
                 // should we add a dummy "old" historic score entry in case of a change after skipping updates for a while?
                 saveHistoricScore(nodeRef, nodeScore);
@@ -339,8 +340,32 @@ public class ContentTrendsScoreUpdater extends AbstractContentTrendsProcessor im
 
         return deltas;
     }
+    
+    private Pair<NodeScores, Long> findLatestHistoricScore(final NodeRef nodeRef)
+    {
+        final FirstHistoricScoreFinder finder = new FirstHistoricScoreFinder(nodeRef);
+        final AuditQueryParameters queryParams = new AuditQueryParameters();
+        queryParams.setForward(false);
+        queryParams.addSearchKey(ContentTrendsService.HISTORIC_NODE_REF_PATH, nodeRef);
+        queryParams.setApplicationName(ContentTrendsService.CONTENT_TRENDS_AUDIT_APPLICATION);
 
-    private Pair<NodeScores, Long> findHistoricScore(final NodeRef nodeRef, final long now)
+        this.auditService.auditQuery(finder, queryParams, 1);
+        
+        final NodeScores historicScore = finder.getNodeScore();
+        final Pair<NodeScores, Long> scoreAndDate;
+        if (historicScore != null)
+        {
+            scoreAndDate = new Pair<NodeScores, Long>(historicScore, finder.getNodeScoreDateMillis());
+        }
+        else
+        {
+            scoreAndDate = null;
+        }
+
+        return scoreAndDate;
+    }
+
+    private Pair<NodeScores, Long> findHistoricScoreWithBackstep(final NodeRef nodeRef, final long now)
     {
         NodeScores historicScore = null;
         final long historicBaseTime = now - BACKSTEP_FOR_HISTORIC_SCORE;
@@ -749,6 +774,72 @@ public class ContentTrendsScoreUpdater extends AbstractContentTrendsProcessor im
             return true;
         }
 
+    }
+
+    protected class FirstHistoricScoreFinder implements AuditQueryCallback
+    {
+        private final NodeRef nodeRef;
+        
+        private NodeScores nodeScore = null;
+        private long nodeScoreDate = 0;
+
+        protected FirstHistoricScoreFinder(final NodeRef nodeRef)
+        {
+            this.nodeRef = nodeRef;
+        }
+
+        protected NodeScores getNodeScore()
+        {
+            return this.nodeScore;
+        }
+        
+        protected long getNodeScoreDateMillis()
+        {
+            return this.nodeScoreDate;
+        }
+
+        /**
+         * 
+         * {@inheritDoc}
+         */
+        @Override
+        public boolean valuesRequired()
+        {
+            return true;
+        }
+
+        /**
+         * 
+         * {@inheritDoc}
+         */
+        @Override
+        public boolean handleAuditEntry(final Long entryId, final String applicationName, final String user, final long time,
+                final Map<String, Serializable> values)
+        {
+            this.nodeScoreDate = time;
+            this.nodeScore = new NodeScores(this.nodeRef, Collections.<Long> emptySet());
+
+            for (final NodeScoreType scoreType : NodeScoreType.values())
+            {
+                final double score = (Double) values.get(ContentTrendsService.HISTORIC_SCORE_PATHS.get(scoreType));
+                this.nodeScore.addScore(scoreType, score);
+            }
+
+            return false;
+        }
+
+        /**
+         * 
+         * {@inheritDoc}
+         */
+        @Override
+        public boolean handleAuditEntryError(final Long entryId, final String errorMsg, final Throwable error)
+        {
+            LOGGER.warn("Error handling audit event (): ()", entryId, errorMsg);
+
+            // continue
+            return true;
+        }
     }
 
     protected class ClosestHistoricScoreFinder implements AuditQueryCallback

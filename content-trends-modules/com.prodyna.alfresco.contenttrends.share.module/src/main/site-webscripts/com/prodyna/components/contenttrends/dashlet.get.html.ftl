@@ -67,7 +67,7 @@
         
         <div id="${id}-doclistBar" class="doclist-bar flat-button no-check-bg">
             <div id="${id}-paginator" class="paginator"></div>
-            <div class="sort-field">
+            <div class="sort-field sort-direction">
                 <span id="${id}-sortField-button" class="yui-button yui-push-button">
                     <span class="first-child">
                         <button name="content-trends-sortField-button"></button>

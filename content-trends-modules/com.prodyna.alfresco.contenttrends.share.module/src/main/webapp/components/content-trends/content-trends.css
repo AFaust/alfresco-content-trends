@@ -13,6 +13,12 @@
 	margin: 0;
 }
 
+.content-trends .doclist .sort-direction span.first-child
+{
+	background-position: 4px 50%;
+	padding-left: 16px;
+}
+
 .content-trends .doclist .documents
 {
 	clear: both;
