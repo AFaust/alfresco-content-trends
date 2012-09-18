@@ -23,7 +23,7 @@
     <dependencies>
 
         <dependency>
-            <groupId>org.alfresco</groupId>
+            <groupId>org.alfresco.enterprise</groupId>
             <artifactId>alfresco-share</artifactId>
             <version>${alfresco.version}</version>
             <scope>provided</scope>
@@ -34,6 +34,12 @@
             <artifactId>spring-surf-core-configservice</artifactId>
             <version>1.0.0</version>
             <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.googlecode.json-simple</groupId>
+            <artifactId>json-simple</artifactId>
+            <version>1.1</version>
         </dependency>
 
     </dependencies>

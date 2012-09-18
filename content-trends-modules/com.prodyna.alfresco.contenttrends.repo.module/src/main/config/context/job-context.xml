@@ -3,6 +3,36 @@
 
 <beans>
 
+    <bean id="${project.artifactId}-trendsProcessor" abstract="true">
+        <property name="jobLockService" ref="JobLockService" />
+        <property name="transactionService" ref="TransactionService" />
+        <property name="auditComponent" ref="auditComponent" />
+        <property name="auditService" ref="AuditService" />
+    </bean>
+
+    <bean id="${project.artifactId}-trendEventCleanerJob" class="org.springframework.scheduling.quartz.JobDetailBean">
+        <property name="jobClass" value="com.prodyna.alfresco.contenttrends.repo.module.jobs.ContentTrendsCleanerJob" />
+        <property name="jobDataAsMap">
+            <map>
+                <entry key="cleaner">
+                    <ref bean="${project.artifactId}-trendEventCleaner" />
+                </entry>
+            </map>
+        </property>
+    </bean>
+
+    <bean id="${project.artifactId}-trendEventCleanerJobTrigger" class="org.alfresco.util.TriggerBean">
+        <property name="jobDetail" ref="${project.artifactId}-trendEventCleanerJob" />
+        <property name="scheduler" ref="schedulerFactory" />
+        <property name="startDelayMinutes" value="${contentTrends.cleaner.startDelayMins}" />
+        <property name="repeatIntervalMinutes" value="${contentTrends.cleaner.repeatIntervalMins}" />
+    </bean>
+
+    <bean id="${project.artifactId}-trendEventCleaner" parent="${project.artifactId}-trendsProcessor" class="com.prodyna.alfresco.contenttrends.repo.module.jobs.ContentTrendsCleaner">
+        <property name="historicScoreMaxAgeInDays" value="${contentTrends.cleaner.historicScoreMaxAgeInDays}" />
+        <property name="aggregatedEventsMaxAgeInDays" value="${contentTrends.cleaner.aggregatedEventsMaxAgeInDays}" />
+    </bean>
+
     <bean id="${project.artifactId}-trendEventConsolidationJob" class="org.springframework.scheduling.quartz.JobDetailBean">
         <property name="jobClass" value="com.prodyna.alfresco.contenttrends.repo.module.jobs.ContentTrendsConsolidationJob" />
         <property name="jobDataAsMap">
@@ -21,12 +51,7 @@
         <property name="repeatIntervalMinutes" value="${contentTrends.consolidation.repeatIntervalMins}" />
     </bean>
 
-    <bean id="${project.artifactId}-trendEventConsolidator" class="com.prodyna.alfresco.contenttrends.repo.module.jobs.ContentTrendsConsolidator">
-        <property name="jobLockService" ref="JobLockService" />
-        <property name="transactionService" ref="TransactionService" />
-        <property name="auditComponent" ref="auditComponent" />
-        <property name="auditService" ref="AuditService" />
-    </bean>
+    <bean id="${project.artifactId}-trendEventConsolidator" parent="${project.artifactId}-trendsProcessor" class="com.prodyna.alfresco.contenttrends.repo.module.jobs.ContentTrendsConsolidator" />
 
     <bean id="${project.artifactId}-trendEventScoreUpdateJob" class="org.springframework.scheduling.quartz.JobDetailBean">
         <property name="jobClass" value="com.prodyna.alfresco.contenttrends.repo.module.jobs.ContentTrendsScoreUpdateJob" />
@@ -46,11 +71,7 @@
         <property name="repeatIntervalMinutes" value="${contentTrends.scoreUpdate.repeatIntervalMins}" />
     </bean>
 
-    <bean id="${project.artifactId}-trendEventScoreUpdater" class="com.prodyna.alfresco.contenttrends.repo.module.jobs.ContentTrendsScoreUpdater">
-        <property name="jobLockService" ref="JobLockService" />
-        <property name="transactionService" ref="TransactionService" />
-        <property name="auditComponent" ref="auditComponent" />
-        <property name="auditService" ref="AuditService" />
+    <bean id="${project.artifactId}-trendEventScoreUpdater" parent="${project.artifactId}-trendsProcessor" class="com.prodyna.alfresco.contenttrends.repo.module.jobs.ContentTrendsScoreUpdater">
         <property name="searchService" ref="SearchService" />
         <!-- Need to use private service here to avoid triggering trends audit by updating properties -->
         <!-- TOOD: tried audit filters, but did not (yet) work -->

@@ -96,6 +96,12 @@ var Filters =
         if (sortField === null)
         {
             filterParams.sort[0].column = '@ct:' + scoreType;
+            
+            // add the change column to include the relative change for identically scored items (since we do not use fractional scores)
+            filterParams.sort.push({
+                column: '@ct:' + scoreType + "Change",
+                ascending: false
+            });
         }
 
         // default to descending if not explicitly defined

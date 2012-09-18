@@ -69,8 +69,8 @@ public class ContentTrendsScoreUpdater extends AbstractContentTrendsProcessor im
             + "/checkedInWorkingCopies";
     protected static final String AGGREGATED_TAG_EVENT_PATH = AGGREGATED_CONTENT_TRENDS_ROOT_PATH + "/" + ContentTrendsEventType.TAG.name();
 
-    private static final int DEFAULT_SCORING_WINDOW_SIZE_IN_DAY = 7;
-    protected int scoringWindowSizeInDays = DEFAULT_SCORING_WINDOW_SIZE_IN_DAY;
+    protected static final int DEFAULT_SCORING_WINDOW_SIZE_IN_DAYS = 7;
+    protected int scoringWindowSizeInDays = DEFAULT_SCORING_WINDOW_SIZE_IN_DAYS;
 
     protected StoreRef storeToProcess = StoreRef.STORE_REF_WORKSPACE_SPACESSTORE;
     protected NodeEventScoringStrategy scoringStrategy;

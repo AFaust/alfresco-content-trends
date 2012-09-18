@@ -88,14 +88,14 @@ public class ContentTrendsConsolidator extends AbstractContentTrendsProcessor
     {
         // first: delete superfluous entries (that should have been snatched by an audit filter)
 
-        final SystemAuditEventsCollector systemEventCollector = new SystemAuditEventsCollector();
+        final AuditEntryIdCollector systemEventCollector = new AuditEntryIdCollector();
         final AuditQueryParameters queryParams = new AuditQueryParameters();
         queryParams.setApplicationName("ContentTrendsBase");
         queryParams.setForward(true);
         queryParams.setUser(AuthenticationUtil.getSystemUserName());
         this.auditService.auditQuery(systemEventCollector, queryParams, -1);
 
-        this.auditService.clearAudit(systemEventCollector.getSystemEntryIds());
+        this.auditService.clearAudit(systemEventCollector.getAuditEntryIds());
 
         // second: collect unique userNames
 
@@ -268,53 +268,6 @@ public class ContentTrendsConsolidator extends AbstractContentTrendsProcessor
                 }
             }
         }
-    }
-
-    protected static class SystemAuditEventsCollector implements AuditQueryCallback
-    {
-
-        private final List<Long> systemEntryIds = new ArrayList<Long>();
-
-        protected List<Long> getSystemEntryIds()
-        {
-            return Collections.unmodifiableList(this.systemEntryIds);
-        }
-
-        /**
-         * 
-         * {@inheritDoc}
-         */
-        @Override
-        public boolean valuesRequired()
-        {
-            return false;
-        }
-
-        /**
-         * 
-         * {@inheritDoc}
-         */
-        @Override
-        public boolean handleAuditEntry(final Long entryId, final String applicationName, final String user, final long time,
-                final Map<String, Serializable> values)
-        {
-            this.systemEntryIds.add(entryId);
-            return true;
-        }
-
-        /**
-         * 
-         * {@inheritDoc}
-         */
-        @Override
-        public boolean handleAuditEntryError(final Long entryId, final String errorMsg, final Throwable error)
-        {
-            LOGGER.warn("Error handling audit event (): ()", entryId, errorMsg);
-
-            // continue
-            return true;
-        }
-
     }
 
     protected static class UserCollector implements AuditQueryCallback

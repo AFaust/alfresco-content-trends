@@ -22,21 +22,21 @@
     <dependencies>
 
         <dependency>
-            <groupId>org.alfresco</groupId>
+            <groupId>org.alfresco.enterprise</groupId>
             <artifactId>alfresco-core</artifactId>
             <version>${alfresco.version}</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
-            <groupId>org.alfresco</groupId>
+            <groupId>org.alfresco.enterprise</groupId>
             <artifactId>alfresco-data-model</artifactId>
             <version>${alfresco.version}</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
-            <groupId>org.alfresco</groupId>
+            <groupId>org.alfresco.enterprise</groupId>
             <artifactId>alfresco-repository</artifactId>
             <version>${alfresco.version}</version>
             <scope>provided</scope>
