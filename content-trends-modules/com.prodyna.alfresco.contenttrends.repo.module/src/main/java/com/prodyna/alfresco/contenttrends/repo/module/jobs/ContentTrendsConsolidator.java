@@ -309,7 +309,7 @@ public class ContentTrendsConsolidator extends AbstractContentTrendsProcessor
         @Override
         public boolean handleAuditEntryError(final Long entryId, final String errorMsg, final Throwable error)
         {
-            LOGGER.warn("Error handling audit event (): ()", entryId, errorMsg);
+            LOGGER.warn("Error handling audit event {}: {}", entryId, errorMsg);
 
             // continue
             return true;
@@ -524,7 +524,7 @@ public class ContentTrendsConsolidator extends AbstractContentTrendsProcessor
         @Override
         public boolean handleAuditEntryError(final Long entryId, final String errorMsg, final Throwable error)
         {
-            LOGGER.warn("Error handling audit event (): ()", entryId, errorMsg);
+            LOGGER.warn("Error handling audit event {}: {}", entryId, errorMsg);
 
             // continue
             return true;

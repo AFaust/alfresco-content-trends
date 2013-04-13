@@ -175,7 +175,7 @@ public class ContentTrendsServiceImpl implements ContentTrendsService, Initializ
         @Override
         public boolean handleAuditEntryError(final Long entryId, final String errorMsg, final Throwable error)
         {
-            LOGGER.error("Error handling audit event () while collecting score history for (): ()", new Object[] { entryId, this.nodeRef,
+            LOGGER.error("Error handling audit event {} while collecting score history for {}: {}", new Object[] { entryId, this.nodeRef,
                     errorMsg });
 
             // continue

@@ -92,7 +92,7 @@ public abstract class AbstractContentTrendsProcessor implements InitializingBean
         // Avoid running when in read-only mode
         if (!this.transactionService.getAllowWrite())
         {
-            LOGGER.trace("() not running due to read-only server", getClass().getSimpleName());
+            LOGGER.trace("{} not running due to read-only server", getClass().getSimpleName());
             return;
         }
 
@@ -127,7 +127,7 @@ public abstract class AbstractContentTrendsProcessor implements InitializingBean
         catch (LockAcquisitionException e)
         {
             // Job being done by another process
-            LOGGER.debug("() already running", getClass().getSimpleName());
+            LOGGER.debug("{} already running", getClass().getSimpleName());
         }
         catch (Throwable e)
         {
@@ -163,7 +163,7 @@ public abstract class AbstractContentTrendsProcessor implements InitializingBean
 
         this.busy = true;
 
-        LOGGER.debug("lock aquired: ()", lockToken);
+        LOGGER.debug("lock aquired: {}", lockToken);
 
         return lockToken;
     }
@@ -174,7 +174,7 @@ public abstract class AbstractContentTrendsProcessor implements InitializingBean
         {
             this.busy = false;
             this.jobLockService.releaseLock(lockToken, getLockQName());
-            LOGGER.debug("lock released: ()", lockToken);
+            LOGGER.debug("lock released: {}", lockToken);
         }
     }
 
@@ -192,7 +192,7 @@ public abstract class AbstractContentTrendsProcessor implements InitializingBean
             // note: currently the cycle will try to complete (even if refresh failed)
             synchronized (this)
             {
-                LOGGER.debug("Lock released (refresh failed): ()", AbstractContentTrendsProcessor.this.getLockQName());
+                LOGGER.debug("Lock released (refresh failed): {}", AbstractContentTrendsProcessor.this.getLockQName());
                 AbstractContentTrendsProcessor.this.busy = false;
             }
         }

@@ -62,7 +62,7 @@
                                     nodeRefs.push(baseNode);
                                 }
 
-                                if (selectedNodes.length == 1)
+                                if (nodeRefs.length == 1)
                                 {
                                     // TODO: show error message
                                 }

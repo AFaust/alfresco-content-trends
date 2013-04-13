@@ -39,6 +39,8 @@
 
         <PathMap source="/alfresco-api/post/NodeService" target="/ContentTrendsBase/NodeService" />
         <PathMap source="/alfresco-api/pre/NodeService/deleteNode" target="/PreContentTrendsBase/NodeService/deleteNode" />
+        <PathMap source="/alfresco-api/pre/NodeService/removeChild" target="/PreContentTrendsBase/NodeService/removeChild" />
+        <PathMap source="/alfresco-api/pre/NodeService/removeChildAssociation" target="/PreContentTrendsBase/NodeService/removeChildAssociation" />
 
         <PathMap source="/alfresco-api/post/PermissionService" target="/ContentTrendsBase/PermissionsService" />
         <PathMap source="/alfresco-api/post/TaggingService" target="/ContentTrendsBase/TaggingService" />
@@ -73,6 +75,28 @@
                     dataExtractor="nodeEventFromNodeOrType" />
                 <AuditPath key="args">
                     <AuditPath key="nodeRef" />
+                </AuditPath>
+            </AuditPath>
+            
+            <AuditPath key="removeChild">
+                <RecordValue key="affectedPrimaryNode" dataSource="/PreContentTrendsBase/NodeService/removeChild/args/childRef"
+                    dataTrigger="/PreContentTrendsBase/NodeService/removeChild/args/childRef" dataExtractor="affectedNodeFromRefExtractor" />
+                <RecordValue key="affectedSecondaryNode" dataSource="/PreContentTrendsBase/NodeService/removeChild/args/parentRef"
+                    dataTrigger="/PreContentTrendsBase/NodeService/removeChild/args/parentRef" dataExtractor="affectedNodeFromRefExtractor" />
+                <GenerateValue key="event" dataGenerator="editEvent" />
+                <AuditPath key="args">
+                    <AuditPath key="childRef" />
+                </AuditPath>
+            </AuditPath>
+            
+            <AuditPath key="removeChildAssociation">
+                <RecordValue key="affectedPrimaryNode" dataSource="/PreContentTrendsBase/NodeService/removeChildAssociation/args/childAssocRef"
+                    dataTrigger="/PreContentTrendsBase/NodeService/removeChildAssociation/args/childAssocRef" dataExtractor="affectedNodeFromChildRefExtractor" />
+                <RecordValue key="affectedSecondaryNode" dataSource="/PreContentTrendsBase/NodeService/removeChildAssociation/args/childAssocRef"
+                    dataTrigger="/PreContentTrendsBase/NodeService/removeChildAssociation/args/childAssocRef" dataExtractor="affectedNodeFromParentRefExtractor" />
+                <GenerateValue key="event" dataGenerator="editEvent" />
+                <AuditPath key="args">
+                    <AuditPath key="childAssocRef" />
                 </AuditPath>
             </AuditPath>
         </AuditPath>
@@ -202,20 +226,22 @@
             </AuditPath>
             
             <AuditPath key="removeChild">
-                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/NodeService/removeChild/args/childRef"
-                    dataTrigger="/ContentTrendsBase/NodeService/removeChild/no-error" dataExtractor="affectedNodeFromRefExtractor" />
-                <RecordValue key="affectedSecondaryNode" dataSource="/ContentTrendsBase/NodeService/removeChild/args/parentRef"
-                    dataTrigger="/ContentTrendsBase/NodeService/removeChild/no-error" dataExtractor="affectedNodeFromRefExtractor" />
-                <GenerateValue key="event" dataGenerator="editEvent" />
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/preCallData/PreContentTrendsBase/NodeService/removeChild/affectedPrimaryNode"
+                    dataTrigger="/ContentTrendsBase/preCallData/PreContentTrendsBase/NodeService/removeChild/affectedPrimaryNode" dataExtractor="simpleValue" />
+                <RecordValue key="affectedSecondaryNode" dataSource="/ContentTrendsBase/preCallData/PreContentTrendsBase/NodeService/removeChild/affectedSecondaryNode"
+                    dataTrigger="/ContentTrendsBase/preCallData/PreContentTrendsBase/NodeService/removeChild/affectedSecondaryNode" dataExtractor="simpleValue" />
+                <RecordValue  key="event" dataSource="/ContentTrendsBase/preCallData/PreContentTrendsBase/NodeService/removeChild/event"
+                    dataTrigger="/ContentTrendsBase/preCallData/PreContentTrendsBase/NodeService/removeChild/event" dataExtractor="simpleValue" />
                 <AuditPath key="no-error" />
             </AuditPath>
             
             <AuditPath key="removeChildAssociation">
-                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/NodeService/removeChildAssociation/args/childAssocRef"
-                    dataTrigger="/ContentTrendsBase/NodeService/removeChildAssociation/no-error" dataExtractor="affectedNodeFromChildRefExtractor" />
-                <RecordValue key="affectedSecondaryNode" dataSource="/ContentTrendsBase/NodeService/removeChildAssociation/args/childAssocRef"
-                    dataTrigger="/ContentTrendsBase/NodeService/removeChildAssociation/no-error" dataExtractor="affectedNodeFromParentRefExtractor" />
-                <GenerateValue key="event" dataGenerator="editEvent" />
+                <RecordValue key="affectedPrimaryNode" dataSource="/ContentTrendsBase/preCallData/PreContentTrendsBase/NodeService/removeChildAssociation/affectedPrimaryNode"
+                    dataTrigger="/ContentTrendsBase/preCallData/PreContentTrendsBase/NodeService/removeChildAssociation/affectedPrimaryNode" dataExtractor="simpleValue" />
+                <RecordValue key="affectedSecondaryNode" dataSource="/ContentTrendsBase/preCallData/PreContentTrendsBase/NodeService/removeChildAssociation/affectedSecondaryNode"
+                    dataTrigger="/ContentTrendsBase/preCallData/PreContentTrendsBase/NodeService/removeChildAssociation/affectedSecondaryNode" dataExtractor="simpleValue" />
+                <RecordValue  key="event" dataSource="/ContentTrendsBase/preCallData/PreContentTrendsBase/NodeService/removeChildAssociation/event"
+                    dataTrigger="/ContentTrendsBase/preCallData/PreContentTrendsBase/NodeService/removeChildAssociation/event" dataExtractor="simpleValue" />
                 <AuditPath key="no-error" />
             </AuditPath>
             

@@ -32,4 +32,19 @@
         </actionGroups>
 
     </config>
+    
+    <config evaluator="string-compare" condition="DocLibCustom">
+        <dependencies>
+            <css src="components/content-trends/content-trends-renderers.css" />
+            <js src="components/content-trends/content-trends-renderers.js" />
+        </dependencies>
+    </config>
+    
+    <config evaluator="node-type" condition="cm:content">
+        <forms>
+            <form id="doclib-simple-metadata">
+                <view-form template="../documentlibrary/forms/doclib-simple-metadata-view.ftl" />
+            </form>
+        </forms>
+    </config>
 </alfresco-config>

@@ -13,9 +13,25 @@
 
     <properties>
 
-        <alfresco.version>4.0.2</alfresco.version>
+        <alfresco.version>4.1.3</alfresco.version>
 
     </properties>
+    
+    <distributionManagement>
+
+        <repository>
+            <id>${distribution.repo.release.id}</id>
+            <name>${distribution.repo.release.name}</name>
+            <url>${distribution.repo.release.url}</url>
+        </repository>
+
+        <snapshotRepository>
+            <id>${distribution.repo.snapshot.id}</id>
+            <name>${distribution.repo.snapshot.name}</name>
+            <url>${distribution.repo.snapshot.url}</url>
+        </snapshotRepository>
+
+    </distributionManagement>
 
     <repositories>
 

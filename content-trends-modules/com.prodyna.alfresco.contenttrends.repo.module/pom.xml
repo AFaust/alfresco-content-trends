@@ -13,7 +13,7 @@
     <name>Content Trends Repository Module</name>
 
     <properties>
-        <enterprise.patch.version>${alfresco.version}.0.1-SNAPSHOT</enterprise.patch.version>
+        <enterprise.patch.version>${alfresco.version}.1-SNAPSHOT</enterprise.patch.version>
 
         <messageBundle.rootPath>prodyna/content-trends</messageBundle.rootPath>
         <messageBundle.rootId>prodyna.content-trends</messageBundle.rootId>

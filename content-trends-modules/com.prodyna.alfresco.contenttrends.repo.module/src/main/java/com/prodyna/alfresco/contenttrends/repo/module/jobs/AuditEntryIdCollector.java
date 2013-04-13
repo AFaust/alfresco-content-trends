@@ -1,21 +1,24 @@
 package com.prodyna.alfresco.contenttrends.repo.module.jobs;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import org.alfresco.service.cmr.audit.AuditService.AuditQueryCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TagEventFinder implements AuditQueryCallback
+public class AuditEntryIdCollector implements AuditQueryCallback
 {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TagEventFinder.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(AuditEntryIdCollector.class);
 
-    private boolean tagEventFound = false;
+    private final List<Long> auditEntryIds = new ArrayList<Long>();
 
-    protected boolean isTageEventFound()
+    protected List<Long> getAuditEntryIds()
     {
-        return this.tagEventFound;
+        return Collections.unmodifiableList(this.auditEntryIds);
     }
 
     /**
@@ -25,7 +28,7 @@ public class TagEventFinder implements AuditQueryCallback
     @Override
     public boolean valuesRequired()
     {
-        return true;
+        return false;
     }
 
     /**
@@ -36,14 +39,8 @@ public class TagEventFinder implements AuditQueryCallback
     public boolean handleAuditEntry(final Long entryId, final String applicationName, final String user, final long time,
             final Map<String, Serializable> values)
     {
-        if (values.containsKey(ContentTrendsScoreUpdater.AGGREGATED_TAG_EVENT_PATH))
-        {
-            final Number tagEventCount = (Number) values.get(ContentTrendsScoreUpdater.AGGREGATED_TAG_EVENT_PATH);
-            this.tagEventFound = tagEventCount != null && tagEventCount.intValue() > 0;
-        }
-
-        // continue until the first event is found
-        return !this.tagEventFound;
+        this.auditEntryIds.add(entryId);
+        return true;
     }
 
     /**

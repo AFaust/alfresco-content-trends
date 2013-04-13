@@ -12,7 +12,7 @@
     <properties>
 
         <!-- just a placeholder property in case a local, patched version of Alfresco is used as the basis -->
-        <enterprise.patch.version>${alfresco.version}</enterprise.patch.version>
+        <enterprise.patch.version>${alfresco.version}.1-SNAPSHOT</enterprise.patch.version>
 
     </properties>
 
